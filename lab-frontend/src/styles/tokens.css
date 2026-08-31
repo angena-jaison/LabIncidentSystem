@@ -1,0 +1,42 @@
+/*
+  Design tokens for "LabTrack".
+  Look & feel: a laboratory logbook, not a generic SaaS dashboard —
+  paper-toned background, ink-navy text, a teal "reagent" accent, and
+  monospace used specifically for IDs/timestamps (like a specimen label).
+*/
+:root {
+  /* --- Color --- */
+  --color-paper: #F3F4F1;
+  --color-paper-raised: #FFFFFF;
+  --color-ink: #16232E;
+  --color-ink-soft: #4B5A63;
+  --color-border: #DBDDD4;
+  --color-teal: #1F6F6B;
+  --color-teal-dark: #164F4C;
+  --color-teal-tint: #E4EFED;
+
+  /* severity / status accents */
+  --color-low: #4C7A5E;
+  --color-medium: #C7962E;
+  --color-high: #D9762E;
+  --color-critical: #C4483A;
+
+  --color-status-open: #4B5A63;
+  --color-status-investigating: #C7962E;
+  --color-status-resolved: #1F6F6B;
+  --color-status-closed: #8A8D82;
+
+  --color-danger: #C4483A;
+  --color-danger-tint: #FBEAE7;
+
+  /* --- Type --- */
+  --font-display: 'Fraunces', Georgia, serif;
+  --font-body: 'Inter', system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', 'Courier New', monospace;
+
+  /* --- Layout --- */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --shadow-card: 0 1px 2px rgba(22, 35, 46, 0.06), 0 1px 1px rgba(22, 35, 46, 0.04);
+  --max-width: 1180px;
+}

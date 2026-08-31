@@ -1,0 +1,122 @@
+@import './tokens.css';
+
+* { box-sizing: border-box; }
+
+html, body, #root { height: 100%; }
+
+body {
+  margin: 0;
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+h1, h2, h3 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  color: var(--color-ink);
+  margin: 0 0 0.4em 0;
+}
+
+a { color: var(--color-teal-dark); }
+
+.app-shell {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: 24px 24px 64px;
+}
+
+.mono { font-family: var(--font-mono); letter-spacing: -0.01em; }
+
+/* --- Buttons --- */
+.btn {
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 14px;
+  padding: 9px 16px;
+  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: background-color 0.12s ease, border-color 0.12s ease;
+}
+.btn-primary { background: var(--color-teal); color: white; }
+.btn-primary:hover { background: var(--color-teal-dark); }
+.btn-secondary { background: transparent; color: var(--color-ink); border-color: var(--color-border); }
+.btn-secondary:hover { border-color: var(--color-ink-soft); }
+.btn-danger { background: var(--color-danger-tint); color: var(--color-danger); border-color: transparent; }
+.btn-danger:hover { background: #f5d6d0; }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* --- Cards / surfaces --- */
+.card {
+  background: var(--color-paper-raised);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card);
+  padding: 20px;
+}
+
+/* --- Form fields --- */
+.field { margin-bottom: 16px; }
+.field label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-ink-soft);
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+.field input, .field select, .field textarea {
+  width: 100%;
+  font-family: var(--font-body);
+  font-size: 14px;
+  padding: 9px 11px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: white;
+  color: var(--color-ink);
+}
+.field input:focus, .field select:focus, .field textarea:focus {
+  outline: 2px solid var(--color-teal);
+  outline-offset: 1px;
+}
+.field textarea { resize: vertical; min-height: 90px; }
+
+.error-banner {
+  background: var(--color-danger-tint);
+  color: var(--color-danger);
+  border: 1px solid #f0c2ba;
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  font-size: 14px;
+  margin-bottom: 16px;
+}
+
+.empty-state {
+  text-align: center;
+  color: var(--color-ink-soft);
+  padding: 48px 16px;
+}
+
+/* --- Badges --- */
+.badge {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  padding: 3px 8px;
+  border-radius: 999px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: white;
+}
+
+/* accessibility: visible focus ring everywhere */
+:focus-visible { outline: 2px solid var(--color-teal); outline-offset: 2px; }
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
+}

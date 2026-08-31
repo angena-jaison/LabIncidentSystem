@@ -1,0 +1,17 @@
+Centrifuge Safety Procedure
+
+All centrifuges must be balanced before every run. Place sample tubes directly opposite
+each other on the rotor, matched by weight within 0.1 grams. An unbalanced rotor is the
+most common cause of vibration, bearing damage, and overheating during a run.
+
+If a centrifuge begins to overheat, emit an unusual smell, or make a grinding noise,
+immediately press the emergency stop button and do not open the lid until the rotor has
+come to a complete stop. Do not attempt to force the lid open while the rotor is spinning.
+
+After an overheating event, tag the equipment as "Out of Service" and notify the lab
+manager. The unit must not be used again until it has been inspected by a qualified
+technician, the motor and bearing temperatures have been checked, and the incident has
+been logged in the incident management system.
+
+Routine maintenance should be performed every three months, including checking the rotor
+for cracks, lubricating the lid seal, and verifying the emergency stop mechanism.
