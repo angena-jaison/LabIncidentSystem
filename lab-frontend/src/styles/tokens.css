@@ -1,42 +1,100 @@
-/*
-  Design tokens for "LabTrack".
-  Look & feel: a laboratory logbook, not a generic SaaS dashboard —
-  paper-toned background, ink-navy text, a teal "reagent" accent, and
-  monospace used specifically for IDs/timestamps (like a specimen label).
-*/
 :root {
-  /* --- Color --- */
-  --color-paper: #F3F4F1;
-  --color-paper-raised: #FFFFFF;
-  --color-ink: #16232E;
-  --color-ink-soft: #4B5A63;
-  --color-border: #DBDDD4;
-  --color-teal: #1F6F6B;
-  --color-teal-dark: #164F4C;
-  --color-teal-tint: #E4EFED;
+    /* =========================================================
+     LABTRACK DESIGN SYSTEM
+     ========================================================= */
+    /* ---------- Brand ---------- */
 
-  /* severity / status accents */
-  --color-low: #4C7A5E;
-  --color-medium: #C7962E;
-  --color-high: #D9762E;
-  --color-critical: #C4483A;
+    --color-primary: #0f766e;
+    --color-primary-dark: #115e59;
+    --color-primary-light: #14b8a6;
+    --color-secondary: #8b7cf6;
+    --color-secondary-light: #ede9fe;
+    --color-navy: #102a43;
+    --color-navy-light: #243b53;
+    --color-navy-soft: #334e68;
+    /* ---------- Backgrounds ---------- */
 
-  --color-status-open: #4B5A63;
-  --color-status-investigating: #C7962E;
-  --color-status-resolved: #1F6F6B;
-  --color-status-closed: #8A8D82;
+    --color-background: #f7fafc;
+    --color-surface: #ffffff;
+    --color-surface-soft: #f0fdfa;
+    --color-surface-muted: #f8fafc;
+    /* ---------- Backwards-compatible names ---------- */
 
-  --color-danger: #C4483A;
-  --color-danger-tint: #FBEAE7;
+    --color-paper: #f7fafc;
+    --color-paper-raised: #ffffff;
+    /* ---------- Text ---------- */
 
-  /* --- Type --- */
-  --font-display: 'Fraunces', Georgia, serif;
-  --font-body: 'Inter', system-ui, sans-serif;
-  --font-mono: 'IBM Plex Mono', 'Courier New', monospace;
+    --color-text: #172b4d;
+    --color-text-secondary: #475569;
+    --color-text-muted: #64748b;
+    --color-text-light: #94a3b8;
+    /* Existing project compatibility */
+    --color-ink: #172b4d;
+    --color-ink-soft: #64748b;
+    /* ---------- Borders ---------- */
 
-  /* --- Layout --- */
-  --radius-sm: 4px;
-  --radius-md: 8px;
-  --shadow-card: 0 1px 2px rgba(22, 35, 46, 0.06), 0 1px 1px rgba(22, 35, 46, 0.04);
-  --max-width: 1180px;
+    --color-border: #e2e8f0;
+    --color-border-light: #edf2f7;
+    /* ---------- Teal compatibility ---------- */
+
+    --color-teal: #14b8a6;
+    --color-teal-dark: #0f766e;
+    /* ---------- Status ---------- */
+
+    --color-success: #10b981;
+    --color-success-light: #ecfdf5;
+    --color-success-dark: #047857;
+    --color-warning: #f59e0b;
+    --color-warning-light: #fffbeb;
+    --color-warning-dark: #b45309;
+    --color-danger: #ef4444;
+    --color-danger-light: #fef2f2;
+    --color-danger-dark: #b91c1c;
+    --color-critical: #dc2626;
+    --color-info: #3b82f6;
+    --color-info-light: #eff6ff;
+    --color-info-dark: #1d4ed8;
+    /* ---------- Typography ---------- */
+
+    --font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --font-display: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --font-size-xs: 0.75rem;
+    --font-size-sm: 0.875rem;
+    --font-size-md: 1rem;
+    --font-size-lg: 1.125rem;
+    --font-size-xl: 1.25rem;
+    --font-size-2xl: 1.5rem;
+    --font-size-3xl: 1.875rem;
+    --font-size-4xl: 2.25rem;
+    /* ---------- Font Weights ---------- */
+
+    --font-weight-normal: 400;
+    --font-weight-medium: 500;
+    --font-weight-semibold: 600;
+    --font-weight-bold: 700;
+    /* ---------- Radius ---------- */
+
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+    --radius-xl: 20px;
+    --radius-2xl: 24px;
+    --radius-full: 999px;
+    /* ---------- Shadows ---------- */
+
+    --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.06);
+    --shadow-md: 0 5px 15px rgba(15, 23, 42, 0.08);
+    --shadow-lg: 0 12px 30px rgba(15, 23, 42, 0.10);
+    --shadow-xl: 0 20px 50px rgba(15, 23, 42, 0.13);
+    /* ---------- Layout ---------- */
+
+    --navbar-height: 72px;
+    --container-width: 1200px;
+    /* Existing project compatibility */
+    --content-width: 1200px;
+    /* ---------- Transitions ---------- */
+
+    --transition-fast: 150ms ease;
+    --transition-normal: 250ms ease;
+    --transition-slow: 400ms ease;
 }

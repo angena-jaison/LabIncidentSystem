@@ -1,0 +1,894 @@
+/* =========================================================
+   LABTRACK — INCIDENTS LIST
+   Clean horizontal incident management table
+   ========================================================= */
+
+
+/* =========================================================
+   PAGE
+   ========================================================= */
+
+.incidents-page {
+    min-height: 100vh;
+}
+
+    .incidents-page .app-shell {
+        max-width: 1280px;
+    }
+
+
+/* =========================================================
+   HEADER
+   ========================================================= */
+
+.incidents-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 32px;
+    margin-bottom: 28px;
+}
+
+.incidents-heading {
+    min-width: 0;
+}
+
+.incidents-header .page-title {
+    margin-top: 6px;
+    margin-bottom: 8px;
+    letter-spacing: -0.035em;
+}
+
+.incidents-header .page-subtitle {
+    max-width: 620px;
+}
+
+.incident-report-button {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 46px;
+    padding: 0 20px;
+    border-radius: 12px;
+    box-shadow: 0 8px 20px rgba(20, 184, 166, 0.16);
+    transition: transform 160ms ease, box-shadow 160ms ease;
+}
+
+    .incident-report-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 26px rgba(20, 184, 166, 0.22);
+    }
+
+.button-icon {
+    font-size: 20px;
+    line-height: 1;
+}
+
+
+/* =========================================================
+   STATISTICS
+   ========================================================= */
+
+.incident-stat-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.incident-stat-card {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    min-height: 92px;
+    padding: 18px;
+    background: rgba(255, 255, 255, 0.86);
+    border: 1px solid rgba(148, 163, 184, 0.18);
+    border-radius: 16px;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.045), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+    transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
+}
+
+    .incident-stat-card:hover {
+        transform: translateY(-2px);
+        border-color: rgba(20, 184, 166, 0.25);
+        box-shadow: 0 12px 30px rgba(15, 23, 42, 0.07), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+    }
+
+.incident-stat-icon {
+    width: 44px;
+    height: 44px;
+    flex-shrink: 0;
+    display: grid;
+    place-items: center;
+    border-radius: 13px;
+    background: #e6fffa;
+    color: #0f766e;
+    font-size: 20px;
+    font-weight: 700;
+}
+
+.incident-stat-open {
+    background: #eff6ff;
+    color: #2563eb;
+}
+
+.incident-stat-investigating {
+    background: #f5f3ff;
+    color: #7c3aed;
+}
+
+.incident-stat-critical {
+    background: #fff1f2;
+    color: #e11d48;
+}
+
+.incident-stat-card span {
+    display: block;
+    margin-bottom: 4px;
+    color: #64748b;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.025em;
+}
+
+.incident-stat-card strong {
+    display: block;
+    color: #0f172a;
+    font-size: 24px;
+    line-height: 1;
+    font-weight: 750;
+}
+
+
+/* =========================================================
+   ERROR
+   ========================================================= */
+
+.incident-error {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+    border-radius: 12px;
+}
+
+
+/* =========================================================
+   FILTER CARD
+   ========================================================= */
+
+.incident-filter-card {
+    margin-bottom: 20px;
+    padding: 24px;
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid rgba(148, 163, 184, 0.18);
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.045), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+.incident-filter-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+    .incident-filter-top h2 {
+        margin: 4px 0 5px;
+        color: #172033;
+        font-size: 20px;
+        letter-spacing: -0.02em;
+    }
+
+.incident-filter-description {
+    margin: 0;
+    color: #64748b;
+    font-size: 13px;
+}
+
+.incident-count {
+    min-width: 82px;
+    padding: 9px 13px;
+    text-align: center;
+    border-radius: 12px;
+    background: #f0fdfa;
+    border: 1px solid #ccfbf1;
+}
+
+    .incident-count strong {
+        display: block;
+        color: #0f766e;
+        font-size: 20px;
+        line-height: 1.1;
+    }
+
+    .incident-count span {
+        color: #5f7775;
+        font-size: 11px;
+        font-weight: 600;
+    }
+
+
+/* =========================================================
+   FILTER CONTROLS
+   ========================================================= */
+
+.incident-filters {
+    display: grid;
+    grid-template-columns: minmax(300px, 1fr) 175px 175px auto;
+    gap: 12px;
+    align-items: end;
+}
+
+.incident-search {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.incident-search-icon {
+    position: absolute;
+    left: 14px;
+    z-index: 1;
+    color: #94a3b8;
+    font-size: 20px;
+    pointer-events: none;
+}
+
+.incident-search input {
+    width: 100%;
+    height: 44px;
+    padding: 0 40px;
+    border: 1px solid #dbe3ea;
+    border-radius: 11px;
+    outline: none;
+    background: #fbfdfe;
+    color: #172033;
+    font-size: 13px;
+    transition: border-color 150ms ease, box-shadow 150ms ease, background 150ms ease;
+}
+
+    .incident-search input::placeholder {
+        color: #94a3b8;
+    }
+
+    .incident-search input:focus {
+        background: #ffffff;
+        border-color: #5eead4;
+        box-shadow: 0 0 0 4px rgba(20, 184, 166, 0.09);
+    }
+
+.incident-search-clear {
+    position: absolute;
+    right: 10px;
+    width: 26px;
+    height: 26px;
+    display: grid;
+    place-items: center;
+    border: 0;
+    border-radius: 50%;
+    background: #e2e8f0;
+    color: #475569;
+    cursor: pointer;
+    font-size: 17px;
+    line-height: 1;
+}
+
+    .incident-search-clear:hover {
+        background: #cbd5e1;
+    }
+
+.incident-filter-field {
+    min-width: 0;
+}
+
+    .incident-filter-field label {
+        display: block;
+        margin-bottom: 7px;
+        color: #64748b;
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.07em;
+    }
+
+    .incident-filter-field select {
+        width: 100%;
+        height: 44px;
+        padding: 0 34px 0 12px;
+        border: 1px solid #dbe3ea;
+        border-radius: 11px;
+        outline: none;
+        background: #fbfdfe;
+        color: #334155;
+        font-size: 13px;
+        cursor: pointer;
+        transition: border-color 150ms ease, box-shadow 150ms ease;
+    }
+
+        .incident-filter-field select:focus {
+            border-color: #5eead4;
+            box-shadow: 0 0 0 4px rgba(20, 184, 166, 0.09);
+        }
+
+.incident-reset {
+    height: 44px;
+    min-width: 78px;
+    border-radius: 11px;
+}
+
+
+/* =========================================================
+   TABLE CARD
+   ========================================================= */
+
+.incident-table-card {
+    width: 100%;
+    overflow: hidden;
+    padding: 0;
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.96);
+    border: 1px solid rgba(148, 163, 184, 0.18);
+    box-shadow: 0 10px 32px rgba(15, 23, 42, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+.table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+}
+
+
+/* =========================================================
+   TABLE
+   ========================================================= */
+
+.incidents-table {
+    width: 100%;
+    min-width: 980px;
+    border-collapse: collapse;
+    table-layout: auto;
+}
+
+    .incidents-table thead {
+        background: #f8fafc;
+    }
+
+    .incidents-table th {
+        height: 48px;
+        padding: 0 18px;
+        border-bottom: 1px solid #e8eef3;
+        color: #64748b;
+        font-size: 10px;
+        font-weight: 750;
+        letter-spacing: 0.075em;
+        text-align: left;
+        text-transform: uppercase;
+        white-space: nowrap;
+    }
+
+    .incidents-table td {
+        padding: 19px 18px;
+        border-bottom: 1px solid #eef2f6;
+        color: #334155;
+        font-size: 13px;
+        vertical-align: middle;
+    }
+
+    .incidents-table tbody tr {
+        background: #ffffff;
+        transition: background 140ms ease, box-shadow 140ms ease;
+    }
+
+        .incidents-table tbody tr:hover {
+            background: #fafffe;
+        }
+
+        .incidents-table tbody tr:last-child td {
+            border-bottom: 0;
+        }
+
+
+    /* =========================================================
+   REMOVE LOCATION COLUMN
+   ========================================================= */
+
+    /*
+   Table order:
+
+   1. Incident
+   2. Category
+   3. Severity
+   4. Status
+   5. Location
+   6. Date
+   7. View
+
+   We hide column 5 so Date moves into its place.
+*/
+
+    .incidents-table th:nth-child(5),
+    .incidents-table td:nth-child(5) {
+        display: none;
+    }
+
+
+/* =========================================================
+   INCIDENT TITLE
+   ========================================================= */
+
+.incident-title-link {
+    color: inherit;
+    text-decoration: none;
+}
+
+.incident-title-row {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    min-width: 360px;
+}
+
+.incident-row-icon {
+    width: 38px;
+    height: 38px;
+    flex-shrink: 0;
+    display: grid;
+    place-items: center;
+    border-radius: 11px;
+    background: #ecfdf5;
+    color: #0f766e;
+    font-size: 17px;
+    transition: transform 150ms ease, background 150ms ease;
+}
+
+.incident-title-link:hover .incident-row-icon {
+    transform: scale(1.05);
+    background: #ccfbf1;
+}
+
+
+/*
+   Smaller title so more of the incident name
+   is visible on one line.
+*/
+
+.incident-title {
+    display: block;
+    width: 100%;
+    max-width: 420px;
+    overflow: hidden;
+    color: #172033;
+    font-size: 13px !important;
+    font-weight: 700;
+    line-height: 1.35;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.incident-title-link:hover .incident-title {
+    color: #0f766e;
+}
+
+.incident-description {
+    display: block;
+    max-width: 420px;
+    margin-top: 4px;
+    overflow: hidden;
+    color: #94a3b8;
+    font-size: 11px;
+    line-height: 1.4;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+
+/* =========================================================
+   CATEGORY
+   ========================================================= */
+
+.incident-category {
+    display: inline-flex;
+    max-width: 170px;
+    padding: 5px 9px;
+    border-radius: 7px;
+    background: #f8fafc;
+    color: #475569;
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 1.3;
+    white-space: nowrap;
+}
+
+
+/* =========================================================
+   BADGES
+   ========================================================= */
+
+.incident-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-width: max-content;
+    padding: 5px 10px;
+    border: 1px solid transparent;
+    border-radius: 999px;
+    font-size: 10px;
+    font-weight: 750;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+}
+
+.incident-badge-dot {
+    width: 6px;
+    height: 6px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    background: currentColor;
+}
+
+
+/* =========================================================
+   SEVERITY
+   ========================================================= */
+
+.incident-badge-critical {
+    background: #fff1f2;
+    border-color: #ffe4e6;
+    color: #be123c;
+}
+
+.incident-badge-high {
+    background: #fff7ed;
+    border-color: #ffedd5;
+    color: #c2410c;
+}
+
+.incident-badge-medium {
+    background: #fffbeb;
+    border-color: #fef3c7;
+    color: #a16207;
+}
+
+.incident-badge-low {
+    background: #ecfdf5;
+    border-color: #d1fae5;
+    color: #047857;
+}
+
+.incident-badge-neutral {
+    background: #f1f5f9;
+    border-color: #e2e8f0;
+    color: #64748b;
+}
+
+
+/* =========================================================
+   STATUS
+   ========================================================= */
+
+.incident-status-open {
+    background: #eff6ff;
+    border-color: #dbeafe;
+    color: #2563eb;
+}
+
+.incident-status-investigating {
+    background: #f5f3ff;
+    border-color: #ede9fe;
+    color: #7c3aed;
+}
+
+.incident-status-resolved {
+    background: #ecfdf5;
+    border-color: #d1fae5;
+    color: #059669;
+}
+
+.incident-status-closed {
+    background: #f1f5f9;
+    border-color: #e2e8f0;
+    color: #64748b;
+}
+
+
+/* =========================================================
+   LOCATION
+   ========================================================= */
+
+/*
+   Kept here for compatibility if the JSX still
+   contains the location element.
+   The entire table column is hidden above.
+*/
+
+.incident-location {
+    display: none;
+}
+
+
+/* =========================================================
+   DATE
+   ========================================================= */
+
+.incident-date {
+    color: #64748b;
+    font-size: 12px;
+    font-weight: 500;
+    white-space: nowrap;
+    min-width: 90px;
+}
+
+
+/* =========================================================
+   VIEW BUTTON
+   ========================================================= */
+
+.incident-view-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    min-width: 64px;
+    padding: 8px 12px;
+    border-radius: 9px;
+    color: #0f766e;
+    font-size: 11px;
+    font-weight: 700;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: background 140ms ease, gap 140ms ease, transform 140ms ease;
+}
+
+    .incident-view-button:hover {
+        background: #f0fdfa;
+        gap: 8px;
+        transform: translateX(1px);
+    }
+
+    .incident-view-button span {
+        font-size: 14px;
+    }
+
+
+/* =========================================================
+   LOADING
+   ========================================================= */
+
+.incident-loading {
+    min-height: 300px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    color: #64748b;
+}
+
+    .incident-loading strong {
+        color: #334155;
+        font-size: 14px;
+    }
+
+    .incident-loading > span {
+        font-size: 12px;
+    }
+
+.spinner {
+    width: 30px;
+    height: 30px;
+    margin-bottom: 7px;
+    border: 3px solid #ccfbf1;
+    border-top-color: #14b8a6;
+    border-radius: 50%;
+    animation: incident-spin 800ms linear infinite;
+}
+
+@keyframes incident-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+
+/* =========================================================
+   EMPTY STATE
+   ========================================================= */
+
+.incident-empty {
+    min-height: 330px;
+    padding: 50px 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+.empty-state-icon {
+    width: 56px;
+    height: 56px;
+    display: grid;
+    place-items: center;
+    margin-bottom: 14px;
+    border-radius: 17px;
+    background: #f0fdfa;
+    color: #0f766e;
+    font-size: 25px;
+}
+
+.incident-empty h3 {
+    margin: 0 0 7px;
+    color: #172033;
+    font-size: 18px;
+}
+
+.incident-empty p {
+    max-width: 420px;
+    margin: 0;
+    color: #94a3b8;
+    font-size: 13px;
+}
+
+
+/* =========================================================
+   FOOTER
+   ========================================================= */
+
+.incident-results-footer {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 5px;
+    padding: 12px 4px 4px;
+    color: #94a3b8;
+    font-size: 11px;
+}
+
+    .incident-results-footer strong {
+        color: #64748b;
+    }
+
+
+/* =========================================================
+   RESPONSIVE — TABLET
+   ========================================================= */
+
+@media (max-width: 900px) {
+
+    .incidents-page .app-shell {
+        max-width: 100%;
+    }
+
+    .incident-stat-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .incident-filters {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .incident-search {
+        grid-column: 1 / -1;
+    }
+
+    .incident-reset {
+        width: 100%;
+    }
+
+    .incidents-table {
+        min-width: 850px;
+    }
+}
+
+
+/* =========================================================
+   RESPONSIVE — MOBILE
+   ========================================================= */
+
+@media (max-width: 640px) {
+
+    .incidents-page .app-shell {
+        padding-left: 14px;
+        padding-right: 14px;
+    }
+
+    .incidents-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 18px;
+    }
+
+    .incident-report-button {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .incident-stat-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+    }
+
+    .incident-stat-card {
+        min-height: 82px;
+        padding: 13px;
+        gap: 10px;
+    }
+
+    .incident-stat-icon {
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        font-size: 16px;
+    }
+
+    .incident-stat-card strong {
+        font-size: 20px;
+    }
+
+    .incident-filter-card {
+        padding: 17px;
+    }
+
+    .incident-filter-top {
+        align-items: flex-start;
+    }
+
+        .incident-filter-top h2 {
+            font-size: 18px;
+        }
+
+    .incident-filters {
+        grid-template-columns: 1fr;
+    }
+
+    .incident-search {
+        grid-column: auto;
+    }
+
+    .incident-reset {
+        width: 100%;
+    }
+
+    .incident-results-footer {
+        justify-content: center;
+    }
+
+    .incidents-table {
+        min-width: 760px;
+    }
+
+    .incident-title-row {
+        min-width: 300px;
+    }
+
+    .incident-title {
+        max-width: 350px;
+        font-size: 12px !important;
+    }
+
+    .incident-description {
+        max-width: 350px;
+    }
+}
+
+
+/* =========================================================
+   REDUCED MOTION
+   ========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+
+    .incident-stat-card,
+    .incident-report-button,
+    .incident-row-icon,
+    .incident-view-button {
+        transition: none;
+    }
+
+    .spinner {
+        animation: none;
+    }
+}

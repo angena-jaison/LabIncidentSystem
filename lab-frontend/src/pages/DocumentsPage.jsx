@@ -2,121 +2,559 @@ import { useEffect, useState } from 'react'
 import { api } from '../api/client'
 import { useAuth } from '../context/AuthContext'
 import DocStatusBadge from '../components/DocStatusBadge'
-
+import '../styles/documents.css'
 export default function DocumentsPage() {
-  const [docs, setDocs] = useState([])
-  const [title, setTitle] = useState('')
-  const [file, setFile] = useState(null)
-  const [error, setError] = useState('')
-  const [uploading, setUploading] = useState(false)
-  const { user } = useAuth()
+    const [docs, setDocs] = useState([])
+    const [title, setTitle] = useState('')
+    const [file, setFile] = useState(null)
+    const [error, setError] = useState('')
+    const [uploading, setUploading] = useState(false)
+    const { user } = useAuth()
 
-  const canUpload = user?.role === 'Reviewer' || user?.role === 'Administrator'
-  const canApprove = user?.role === 'Administrator'
+    const canUpload =
+        user?.role === 'Reviewer' ||
+        user?.role === 'Administrator'
 
-  function reload() {
-    api.get('/documents').then(setDocs).catch(err => setError(err.message))
-  }
+    const canApprove =
+        user?.role === 'Administrator'
 
-  useEffect(reload, [])
-
-  async function handleUpload(e) {
-    e.preventDefault()
-    if (!file) { setError('Choose a .txt or .pdf file first.'); return }
-    setError('')
-    setUploading(true)
-    try {
-      const formData = new FormData()
-      formData.append('file', file)
-      formData.append('title', title || file.name)
-      await api.postForm('/documents/upload', formData)
-      setTitle('')
-      setFile(null)
-      e.target.reset()
-      reload()
-    } catch (err) {
-      setError(err.message)
-    } finally {
-      setUploading(false)
+    function reload() {
+        api.get('/documents')
+            .then(setDocs)
+            .catch(err => setError(err.message))
     }
-  }
 
-  async function approve(id) {
-    setError('')
-    try {
-      await api.patch(`/documents/${id}/approve`, {})
-      reload()
-    } catch (err) { setError(err.message) }
-  }
+    useEffect(reload, [])
 
-  async function reject(id) {
-    setError('')
-    try {
-      await api.patch(`/documents/${id}/reject`, {})
-      reload()
-    } catch (err) { setError(err.message) }
-  }
+    async function handleUpload(e) {
+        e.preventDefault()
 
-  return (
-    <div className="app-shell" style={{ maxWidth: 760 }}>
-      <h1>Knowledge base</h1>
-      <p style={{ color: 'var(--color-ink-soft)' }}>
-        Reviewers and Administrators can upload candidate documents (.txt or .pdf).
-        A Reviewer's upload is only used by the AI assistant once an{' '}
-        <strong>Administrator approves it</strong>. An Administrator's own upload
-        is approved automatically. This keeps the assistant grounded in vetted
-        material only — never the open internet.
-      </p>
+        if (!file) {
+            setError('Choose a .txt or .pdf file first.')
+            return
+        }
 
-      {error && <div className="error-banner">{error}</div>}
+        setError('')
+        setUploading(true)
 
-      {canUpload && (
-        <form onSubmit={handleUpload} className="card" style={{ marginBottom: 20 }}>
-          <div className="field">
-            <label>Document title</label>
-            <input value={title} onChange={e => setTitle(e.target.value)} placeholder="e.g. Fume Hood Safety Procedure" />
-          </div>
-          <div className="field">
-            <label>File (.txt or .pdf)</label>
-            <input type="file" accept=".txt,.pdf" onChange={e => setFile(e.target.files[0])} />
-          </div>
-          <button className="btn btn-primary" disabled={uploading}>
-            {uploading ? 'Uploading & indexing…' : canApprove ? 'Upload (auto-approved)' : 'Submit for approval'}
-          </button>
-        </form>
-      )}
+        try {
+            const formData = new FormData()
 
-      {docs.length === 0 ? (
-        <div className="empty-state">No documents uploaded yet.</div>
-      ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-          {docs.map(d => (
-            <div key={d.id} className="card">
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            formData.append('file', file)
+            formData.append(
+                'title',
+                title || file.name
+            )
+
+            await api.postForm(
+                '/documents/upload',
+                formData
+            )
+
+            setTitle('')
+            setFile(null)
+            e.target.reset()
+
+            reload()
+        } catch (err) {
+            setError(err.message)
+        } finally {
+            setUploading(false)
+        }
+    }
+
+    async function approve(id) {
+        setError('')
+
+        try {
+            await api.patch(
+                `/documents/${id}/approve`,
+                {}
+            )
+
+            reload()
+        } catch (err) {
+            setError(err.message)
+        }
+    }
+
+    async function reject(id) {
+        setError('')
+
+        try {
+            await api.patch(
+                `/documents/${id}/reject`,
+                {}
+            )
+
+            reload()
+        } catch (err) {
+            setError(err.message)
+        }
+    }
+
+    const pendingCount = docs.filter(
+        d => d.status === 'Pending'
+    ).length
+
+    const approvedCount = docs.filter(
+        d => d.status === 'Approved'
+    ).length
+
+    return (
+        <div className="app-shell documents-page">
+
+            {/* =====================================================
+          HEADER
+          ===================================================== */}
+
+            <div className="documents-header">
+
                 <div>
-                  <div style={{ fontWeight: 600 }}>{d.title}</div>
-                  <div className="mono" style={{ fontSize: 12, color: 'var(--color-ink-soft)', marginTop: 4 }}>
-                    {d.fileName} · {d.chunkCount} indexed chunks · uploaded by {d.uploadedByName}
-                  </div>
-                  {d.reviewedByName && (
-                    <div className="mono" style={{ fontSize: 12, color: 'var(--color-ink-soft)', marginTop: 2 }}>
-                      Reviewed by {d.reviewedByName} on {new Date(d.reviewedAtUtc).toLocaleDateString()}
+                    <div className="eyebrow">
+                        KNOWLEDGE MANAGEMENT
                     </div>
-                  )}
-                </div>
-                <DocStatusBadge status={d.status} />
-              </div>
 
-              {canApprove && d.status === 'Pending' && (
-                <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
-                  <button className="btn btn-primary" onClick={() => approve(d.id)}>Approve</button>
-                  <button className="btn btn-danger" onClick={() => reject(d.id)}>Reject</button>
+                    <h1 className="documents-title">
+                        Knowledge base
+                    </h1>
+
+                    <p className="documents-subtitle">
+                        Vetted laboratory safety procedures and reference
+                        material used to ground the AI assistant.
+                    </p>
                 </div>
-              )}
+
+                <div className="documents-header-icon">
+                    <span>▤</span>
+                </div>
+
             </div>
-          ))}
+
+
+            {/* =====================================================
+          INFORMATION BANNER
+          ===================================================== */}
+
+            <div className="knowledge-banner">
+
+                <div className="knowledge-banner-icon">
+                    ✓
+                </div>
+
+                <div className="knowledge-banner-content">
+
+                    <strong>
+                        AI knowledge is grounded in approved documents
+                    </strong>
+
+                    <p>
+                        Reviewers can submit documents for approval.
+                        Administrator uploads are approved automatically.
+                        Only approved material is used by the AI assistant.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            {/* =====================================================
+          STATISTICS
+          ===================================================== */}
+
+            <div className="document-stats">
+
+                <div className="document-stat-card">
+
+                    <div className="document-stat-icon total">
+                        ▤
+                    </div>
+
+                    <div>
+                        <span>Total documents</span>
+                        <strong>{docs.length}</strong>
+                    </div>
+
+                </div>
+
+
+                <div className="document-stat-card">
+
+                    <div className="document-stat-icon approved">
+                        ✓
+                    </div>
+
+                    <div>
+                        <span>Approved</span>
+                        <strong>{approvedCount}</strong>
+                    </div>
+
+                </div>
+
+
+                <div className="document-stat-card">
+
+                    <div className="document-stat-icon pending">
+                        ◷
+                    </div>
+
+                    <div>
+                        <span>Pending review</span>
+                        <strong>{pendingCount}</strong>
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            {/* =====================================================
+          ERROR
+          ===================================================== */}
+
+            {error && (
+                <div className="error-banner document-error">
+                    <span>!</span>
+                    {error}
+                </div>
+            )}
+
+
+            {/* =====================================================
+          UPLOAD
+          ===================================================== */}
+
+            {canUpload && (
+
+                <section className="document-upload-card">
+
+                    <div className="section-heading">
+
+                        <div className="section-heading-icon">
+                            ↑
+                        </div>
+
+                        <div>
+                            <h2>
+                                Add knowledge document
+                            </h2>
+
+                            <p>
+                                Upload a laboratory procedure or safety reference.
+                            </p>
+                        </div>
+
+                    </div>
+
+
+                    <form
+                        onSubmit={handleUpload}
+                        className="document-upload-form"
+                    >
+
+                        <div className="field document-title-field">
+
+                            <label>
+                                Document title
+                            </label>
+
+                            <input
+                                value={title}
+                                onChange={e =>
+                                    setTitle(e.target.value)
+                                }
+                                placeholder="e.g. Fume Hood Safety Procedure"
+                            />
+
+                        </div>
+
+
+                        <div className="field document-file-field">
+
+                            <label>
+                                Document file
+                            </label>
+
+                            <label className="file-drop-zone">
+
+                                <input
+                                    type="file"
+                                    accept=".txt,.pdf"
+                                    onChange={e =>
+                                        setFile(e.target.files[0])
+                                    }
+                                />
+
+                                <span className="file-drop-icon">
+                                    ↑
+                                </span>
+
+                                <span className="file-drop-main">
+
+                                    {file
+                                        ? file.name
+                                        : 'Choose a .txt or .pdf file'}
+
+                                </span>
+
+                                <span className="file-drop-hint">
+                                    {file
+                                        ? `${(file.size / 1024).toFixed(1)} KB selected`
+                                        : 'Click to browse files'}
+
+                                </span>
+
+                            </label>
+
+                        </div>
+
+
+                        <button
+                            className="btn btn-primary document-upload-button"
+                            disabled={uploading}
+                            type="submit"
+                        >
+
+                            <span>
+                                {uploading
+                                    ? 'Uploading & indexing…'
+                                    : canApprove
+                                        ? 'Upload & approve'
+                                        : 'Submit for approval'}
+                            </span>
+
+                            {!uploading && (
+                                <span className="button-arrow">
+                                    →
+                                </span>
+                            )}
+
+                        </button>
+
+                    </form>
+
+
+                    <div className="upload-note">
+
+                        <span>ⓘ</span>
+
+                        <span>
+                            Supported formats: <strong>.TXT</strong> and
+                            <strong> .PDF</strong>. Documents are indexed
+                            into the laboratory knowledge base.
+                        </span>
+
+                    </div>
+
+                </section>
+
+            )}
+
+
+            {/* =====================================================
+          DOCUMENT LIST
+          ===================================================== */}
+
+            <section className="documents-section">
+
+                <div className="documents-section-header">
+
+                    <div>
+
+                        <div className="eyebrow">
+                            REFERENCE LIBRARY
+                        </div>
+
+                        <h2>
+                            Uploaded documents
+                        </h2>
+
+                    </div>
+
+                    <div className="document-count-pill">
+                        {docs.length} document{docs.length !== 1 ? 's' : ''}
+                    </div>
+
+                </div>
+
+
+                {docs.length === 0 ? (
+
+                    <div className="document-empty">
+
+                        <div className="document-empty-icon">
+                            ▤
+                        </div>
+
+                        <h3>
+                            No documents yet
+                        </h3>
+
+                        <p>
+                            Upload your first approved laboratory reference
+                            document to start building the knowledge base.
+                        </p>
+
+                    </div>
+
+                ) : (
+
+                    <div className="document-list">
+
+                        {docs.map(d => (
+
+                            <article
+                                key={d.id}
+                                className="document-card"
+                            >
+
+                                <div className="document-card-main">
+
+                                    <div className="document-file-icon">
+                                        {d.fileName?.toLowerCase().endsWith('.pdf')
+                                            ? 'PDF'
+                                            : 'TXT'}
+                                    </div>
+
+
+                                    <div className="document-information">
+
+                                        <div className="document-title-row">
+
+                                            <h3>
+                                                {d.title}
+                                            </h3>
+
+                                            <DocStatusBadge
+                                                status={d.status}
+                                            />
+
+                                        </div>
+
+
+                                        <div className="document-file-name">
+                                            {d.fileName}
+                                        </div>
+
+
+                                        <div className="document-meta">
+
+                                            <span>
+                                                <strong>
+                                                    {d.chunkCount}
+                                                </strong>{' '}
+                                                indexed chunks
+                                            </span>
+
+                                            <span className="meta-separator">
+                                                •
+                                            </span>
+
+                                            <span>
+                                                Uploaded by{' '}
+                                                <strong>
+                                                    {d.uploadedByName}
+                                                </strong>
+                                            </span>
+
+                                        </div>
+
+
+                                        {d.reviewedByName && (
+
+                                            <div className="document-review">
+
+                                                <span className="review-check">
+                                                    ✓
+                                                </span>
+
+                                                Reviewed by{' '}
+                                                <strong>
+                                                    {d.reviewedByName}
+                                                </strong>
+
+                                                {' '}on{' '}
+
+                                                {new Date(
+                                                    d.reviewedAtUtc
+                                                ).toLocaleDateString()}
+
+                                            </div>
+
+                                        )}
+
+                                    </div>
+
+                                </div>
+
+
+                                {/* ADMIN ACTIONS */}
+
+                                {canApprove &&
+                                    d.status === 'Pending' && (
+
+                                        <div className="document-actions">
+
+                                            <button
+                                                className="btn btn-primary document-action-approve"
+                                                onClick={() => approve(d.id)}
+                                            >
+                                                <span>✓</span>
+                                                Approve
+                                            </button>
+
+
+                                            <button
+                                                className="btn btn-danger document-action-reject"
+                                                onClick={() => reject(d.id)}
+                                            >
+                                                <span>×</span>
+                                                Reject
+                                            </button>
+
+                                        </div>
+
+                                    )}
+
+                            </article>
+
+                        ))}
+
+                    </div>
+
+                )}
+
+            </section>
+
+
+            {/* =====================================================
+          FOOTER INFORMATION
+          ===================================================== */}
+
+            <div className="knowledge-footer">
+
+                <div className="knowledge-footer-icon">
+                    ✦
+                </div>
+
+                <div>
+
+                    <strong>
+                        Why approved documents matter
+                    </strong>
+
+                    <p>
+                        LabTrack uses vetted documents as the source of
+                        truth for its AI assistant. This helps keep answers
+                        focused on your laboratory's approved procedures
+                        rather than relying on unverified information.
+                    </p>
+
+                </div>
+
+            </div>
+
         </div>
-      )}
-    </div>
-  )
+    )
 }

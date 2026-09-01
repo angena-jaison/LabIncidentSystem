@@ -1,56 +1,167 @@
 import { NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 
-const linkStyle = ({ isActive }) => ({
-  padding: '8px 4px',
-  color: isActive ? 'var(--color-teal-dark)' : 'var(--color-ink-soft)',
-  fontWeight: isActive ? 600 : 500,
-  textDecoration: 'none',
-  borderBottom: isActive ? '2px solid var(--color-teal)' : '2px solid transparent',
-})
-
 export default function Navbar() {
-  const { user, logout } = useAuth()
-  const navigate = useNavigate()
+    const { user, logout } = useAuth()
+    const navigate = useNavigate()
 
-  return (
-    <header style={{
-      borderBottom: '1px solid var(--color-border)',
-      background: 'var(--color-paper-raised)',
-    }}>
-      <div className="app-shell" style={{
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '14px 24px',
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 32 }}>
-          <span style={{ fontFamily: 'var(--font-display)', fontSize: 20, fontWeight: 600 }}>
-            LabTrack
-          </span>
-          {user && (
-            <nav style={{ display: 'flex', gap: 20 }}>
-              <NavLink to="/" style={linkStyle} end>Dashboard</NavLink>
-              <NavLink to="/incidents" style={linkStyle}>Incidents</NavLink>
-              <NavLink to="/incidents/new" style={linkStyle}>New Incident</NavLink>
-              <NavLink to="/documents" style={linkStyle}>Knowledge Base</NavLink>
-              <NavLink to="/ask-ai" style={linkStyle}>Ask AI</NavLink>
-              {user.role === 'Administrator' && (
-                <NavLink to="/admin/users" style={linkStyle}>Admin</NavLink>
-              )}
-            </nav>
-          )}
-        </div>
+    const linkClass = ({ isActive }) =>
+        `nav-link ${isActive ? 'active' : ''}`
 
-        {user && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <span style={{ fontSize: 13, color: 'var(--color-ink-soft)' }} className="mono">
-              {user.fullName} · {user.role}
-            </span>
-            <button className="btn btn-secondary" onClick={() => { logout(); navigate('/login') }}>
-              Log out
-            </button>
-          </div>
-        )}
-      </div>
-    </header>
-  )
+    return (
+        <header className="navbar">
+            <div className="navbar-inner">
+
+                {/* Brand */}
+                <div className="navbar-brand">
+                    <div className="navbar-brand-icon">
+                        🧪
+                    </div>
+
+                    <div>
+                        <div style={{ lineHeight: 1 }}>
+                            LabTrack
+                        </div>
+
+                        <div
+                            style={{
+                                fontSize: 10,
+                                fontWeight: 500,
+                                color: 'var(--color-text-muted)',
+                                marginTop: 4,
+                            }}
+                        >
+                            LAB SAFETY PLATFORM
+                        </div>
+                    </div>
+                </div>
+
+
+                {/* Navigation */}
+                {user && (
+                    <nav className="navbar-links">
+
+                        <NavLink
+                            to="/"
+                            end
+                            className={linkClass}
+                        >
+                            Dashboard
+                        </NavLink>
+
+                        <NavLink
+                            to="/incidents"
+                            className={linkClass}
+                        >
+                            Incidents
+                        </NavLink>
+
+                        <NavLink
+                            to="/incidents/new"
+                            className={linkClass}
+                        >
+                            + New Incident
+                        </NavLink>
+
+                        <NavLink
+                            to="/documents"
+                            className={linkClass}
+                        >
+                            Knowledge Base
+                        </NavLink>
+
+                        <NavLink
+                            to="/ask-ai"
+                            className={linkClass}
+                        >
+                            ✦ Ask AI
+                        </NavLink>
+
+                        {user.role === 'Administrator' && (
+                            <NavLink
+                                to="/admin/users"
+                                className={linkClass}
+                            >
+                                Admin
+                            </NavLink>
+                        )}
+
+                    </nav>
+                )}
+
+
+                {/* User section */}
+                {user && (
+                    <div
+                        style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 12,
+                        }}
+                    >
+
+                        <div
+                            style={{
+                                width: 38,
+                                height: 38,
+                                borderRadius: '50%',
+
+                                display: 'grid',
+                                placeItems: 'center',
+
+                                background: 'var(--color-surface-soft)',
+                                color: 'var(--color-primary)',
+
+                                fontWeight: 700,
+                                fontSize: 14,
+                            }}
+                            title={user.fullName}
+                        >
+                            {user.fullName?.charAt(0)?.toUpperCase() || 'U'}
+                        </div>
+
+                        <div
+                            style={{
+                                display: 'flex',
+                                flexDirection: 'column',
+                                lineHeight: 1.2,
+                            }}
+                        >
+                            <span
+                                style={{
+                                    fontSize: 13,
+                                    fontWeight: 600,
+                                    color: 'var(--color-text)',
+                                }}
+                            >
+                                {user.fullName}
+                            </span>
+
+                            <span
+                                style={{
+                                    fontSize: 11,
+                                    color: 'var(--color-text-muted)',
+                                    marginTop: 4,
+                                }}
+                            >
+                                {user.role}
+                            </span>
+                        </div>
+
+                        <button
+                            className="btn btn-secondary"
+                            onClick={() => {
+                                logout()
+                                navigate('/login')
+                            }}
+                        >
+                            Log out
+                        </button>
+
+                    </div>
+                )}
+
+            </div>
+        </header>
+    )
 }

@@ -1,0 +1,795 @@
+/* =========================================================
+   LABTRACK — KNOWLEDGE BASE
+   Documents page styling
+   ========================================================= */
+
+.documents-page {
+    max-width: 1080px;
+    padding-bottom: 60px;
+}
+
+
+/* =========================================================
+   HEADER
+   ========================================================= */
+
+.documents-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 30px;
+    margin-bottom: 28px;
+}
+
+.documents-title {
+    margin: 6px 0 8px;
+    color: #172033;
+    font-size: clamp(30px, 4vw, 42px);
+    font-weight: 750;
+    letter-spacing: -0.045em;
+    line-height: 1.05;
+}
+
+.documents-subtitle {
+    max-width: 650px;
+    margin: 0;
+    color: #64748b;
+    font-size: 14px;
+    line-height: 1.7;
+}
+
+.eyebrow {
+    color: #0f766e;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.13em;
+}
+
+.documents-header-icon {
+    width: 72px;
+    height: 72px;
+    flex-shrink: 0;
+    display: grid;
+    place-items: center;
+    border: 1px solid #ccfbf1;
+    border-radius: 22px;
+    background: linear-gradient( 145deg, #f0fdfa, #ecfeff );
+    color: #0f766e;
+    box-shadow: 0 12px 30px rgba(15, 118, 110, 0.08);
+}
+
+    .documents-header-icon span {
+        font-size: 30px;
+    }
+
+
+/* =========================================================
+   KNOWLEDGE BANNER
+   ========================================================= */
+
+.knowledge-banner {
+    display: flex;
+    align-items: flex-start;
+    gap: 15px;
+    margin-bottom: 22px;
+    padding: 18px 20px;
+    border: 1px solid #ccfbf1;
+    border-radius: 15px;
+    background: linear-gradient( 100deg, #f0fdfa 0%, #f8fffe 100% );
+}
+
+.knowledge-banner-icon {
+    width: 32px;
+    height: 32px;
+    flex-shrink: 0;
+    display: grid;
+    place-items: center;
+    border-radius: 10px;
+    background: #ccfbf1;
+    color: #0f766e;
+    font-weight: 800;
+}
+
+.knowledge-banner-content strong {
+    display: block;
+    margin-bottom: 4px;
+    color: #134e4a;
+    font-size: 13px;
+}
+
+.knowledge-banner-content p {
+    margin: 0;
+    color: #557371;
+    font-size: 12px;
+    line-height: 1.6;
+}
+
+
+/* =========================================================
+   STATISTICS
+   ========================================================= */
+
+.document-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+    margin-bottom: 24px;
+}
+
+.document-stat-card {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    min-height: 84px;
+    padding: 17px;
+    border: 1px solid #e7edf1;
+    border-radius: 15px;
+    background: rgba(255, 255, 255, 0.9);
+    box-shadow: 0 7px 24px rgba(15, 23, 42, 0.04);
+}
+
+.document-stat-icon {
+    width: 43px;
+    height: 43px;
+    flex-shrink: 0;
+    display: grid;
+    place-items: center;
+    border-radius: 12px;
+    font-size: 18px;
+    font-weight: 800;
+}
+
+    .document-stat-icon.total {
+        background: #f0fdfa;
+        color: #0f766e;
+    }
+
+    .document-stat-icon.approved {
+        background: #ecfdf5;
+        color: #047857;
+    }
+
+    .document-stat-icon.pending {
+        background: #fffbeb;
+        color: #a16207;
+    }
+
+.document-stat-card span {
+    display: block;
+    margin-bottom: 5px;
+    color: #64748b;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.document-stat-card strong {
+    display: block;
+    color: #172033;
+    font-size: 23px;
+    line-height: 1;
+}
+
+
+/* =========================================================
+   ERROR
+   ========================================================= */
+
+.document-error {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    margin-bottom: 20px;
+}
+
+
+/* =========================================================
+   UPLOAD CARD
+   ========================================================= */
+
+.document-upload-card {
+    margin-bottom: 34px;
+    padding: 24px;
+    border: 1px solid #e3eaee;
+    border-radius: 19px;
+    background: #ffffff;
+    box-shadow: 0 12px 35px rgba(15, 23, 42, 0.055);
+}
+
+.section-heading {
+    display: flex;
+    align-items: center;
+    gap: 13px;
+    margin-bottom: 23px;
+}
+
+.section-heading-icon {
+    width: 42px;
+    height: 42px;
+    display: grid;
+    place-items: center;
+    border-radius: 12px;
+    background: #f0fdfa;
+    color: #0f766e;
+    font-size: 20px;
+    font-weight: 800;
+}
+
+.section-heading h2 {
+    margin: 0 0 3px;
+    color: #172033;
+    font-size: 18px;
+    letter-spacing: -0.02em;
+}
+
+.section-heading p {
+    margin: 0;
+    color: #94a3b8;
+    font-size: 12px;
+}
+
+
+/* =========================================================
+   UPLOAD FORM
+   ========================================================= */
+
+.document-upload-form {
+    display: grid;
+    grid-template-columns: 1fr 1.2fr auto;
+    gap: 14px;
+    align-items: end;
+}
+
+    .document-upload-form .field {
+        margin: 0;
+    }
+
+        .document-upload-form .field > label {
+            display: block;
+            margin-bottom: 7px;
+            color: #475569;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.03em;
+        }
+
+    .document-upload-form input:not([type="file"]) {
+        width: 100%;
+        height: 45px;
+        padding: 0 13px;
+        border: 1px solid #dbe3ea;
+        border-radius: 11px;
+        outline: none;
+        background: #fbfdfe;
+        color: #172033;
+        font-size: 13px;
+        box-sizing: border-box;
+        transition: border-color 150ms ease, box-shadow 150ms ease;
+    }
+
+        .document-upload-form input:not([type="file"]):focus {
+            border-color: #5eead4;
+            background: #ffffff;
+            box-shadow: 0 0 0 4px rgba(20, 184, 166, 0.08);
+        }
+
+
+/* =========================================================
+   FILE DROP ZONE
+   ========================================================= */
+
+.file-drop-zone {
+    position: relative;
+    height: 45px;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 0 12px;
+    border: 1px dashed #b9d9d5;
+    border-radius: 11px;
+    background: #f8fffe;
+    cursor: pointer;
+    box-sizing: border-box;
+    transition: background 150ms ease, border-color 150ms ease;
+}
+
+    .file-drop-zone:hover {
+        border-color: #5eead4;
+        background: #f0fdfa;
+    }
+
+    .file-drop-zone input {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        opacity: 0;
+    }
+
+.file-drop-icon {
+    width: 25px;
+    height: 25px;
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    border-radius: 7px;
+    background: #ccfbf1;
+    color: #0f766e;
+    font-size: 14px;
+    font-weight: 800;
+}
+
+.file-drop-main {
+    overflow: hidden;
+    color: #334155;
+    font-size: 12px;
+    font-weight: 650;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.file-drop-hint {
+    margin-left: auto;
+    color: #94a3b8;
+    font-size: 10px;
+    white-space: nowrap;
+}
+
+
+/* =========================================================
+   UPLOAD BUTTON
+   ========================================================= */
+
+.document-upload-button {
+    height: 45px;
+    min-width: 170px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+    border-radius: 11px;
+    white-space: nowrap;
+}
+
+.button-arrow {
+    font-size: 16px;
+    transition: transform 150ms ease;
+}
+
+.document-upload-button:hover .button-arrow {
+    transform: translateX(3px);
+}
+
+
+/* =========================================================
+   UPLOAD NOTE
+   ========================================================= */
+
+.upload-note {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    margin-top: 15px;
+    padding-top: 14px;
+    border-top: 1px solid #eef2f5;
+    color: #94a3b8;
+    font-size: 11px;
+}
+
+    .upload-note > span:first-child {
+        color: #0f766e;
+        font-size: 14px;
+    }
+
+    .upload-note strong {
+        color: #64748b;
+    }
+
+
+/* =========================================================
+   DOCUMENT SECTION
+   ========================================================= */
+
+.documents-section {
+    margin-top: 10px;
+}
+
+.documents-section-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 20px;
+    margin-bottom: 14px;
+}
+
+    .documents-section-header h2 {
+        margin: 5px 0 0;
+        color: #172033;
+        font-size: 20px;
+        letter-spacing: -0.025em;
+    }
+
+.document-count-pill {
+    padding: 7px 11px;
+    border: 1px solid #e2e8f0;
+    border-radius: 999px;
+    background: #f8fafc;
+    color: #64748b;
+    font-size: 11px;
+    font-weight: 650;
+}
+
+
+/* =========================================================
+   DOCUMENT LIST
+   ========================================================= */
+
+.document-list {
+    display: flex;
+    flex-direction: column;
+    gap: 11px;
+}
+
+.document-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 18px;
+    border: 1px solid #e7edf1;
+    border-radius: 15px;
+    background: #ffffff;
+    box-shadow: 0 6px 22px rgba(15, 23, 42, 0.035);
+    transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
+}
+
+    .document-card:hover {
+        transform: translateY(-2px);
+        border-color: #d5e7e5;
+        box-shadow: 0 12px 30px rgba(15, 23, 42, 0.065);
+    }
+
+.document-card-main {
+    min-width: 0;
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+}
+
+
+/* =========================================================
+   FILE ICON
+   ========================================================= */
+
+.document-file-icon {
+    width: 46px;
+    height: 52px;
+    flex-shrink: 0;
+    display: grid;
+    place-items: center;
+    border: 1px solid #d9efeb;
+    border-radius: 11px;
+    background: #f0fdfa;
+    color: #0f766e;
+    font-size: 10px;
+    font-weight: 850;
+    letter-spacing: 0.04em;
+    position: relative;
+}
+
+    .document-file-icon::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        border-top: 13px solid #ccfbf1;
+        border-left: 13px solid transparent;
+    }
+
+
+/* =========================================================
+   DOCUMENT INFORMATION
+   ========================================================= */
+
+.document-information {
+    min-width: 0;
+}
+
+.document-title-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 9px;
+    margin-bottom: 3px;
+}
+
+    .document-title-row h3 {
+        max-width: 500px;
+        margin: 0;
+        overflow: hidden;
+        color: #172033;
+        font-size: 14px;
+        font-weight: 700;
+        line-height: 1.4;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+.document-file-name {
+    margin-bottom: 8px;
+    color: #94a3b8;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 10px;
+}
+
+.document-meta {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 7px;
+    color: #94a3b8;
+    font-size: 10px;
+}
+
+    .document-meta strong {
+        color: #64748b;
+    }
+
+.meta-separator {
+    color: #cbd5e1;
+}
+
+.document-review {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 7px;
+    color: #64748b;
+    font-size: 10px;
+}
+
+    .document-review strong {
+        color: #475569;
+    }
+
+.review-check {
+    color: #059669;
+    font-weight: 800;
+}
+
+
+/* =========================================================
+   ACTIONS
+   ========================================================= */
+
+.document-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.document-action-approve,
+.document-action-reject {
+    min-width: 88px;
+    height: 37px;
+    padding: 0 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    border-radius: 9px;
+    font-size: 11px;
+}
+
+.document-action-reject {
+    min-width: 78px;
+}
+
+
+/* =========================================================
+   EMPTY STATE
+   ========================================================= */
+
+.document-empty {
+    min-height: 260px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 35px;
+    border: 1px dashed #dbe5e8;
+    border-radius: 16px;
+    background: #fbfdfd;
+    text-align: center;
+}
+
+.document-empty-icon {
+    width: 55px;
+    height: 55px;
+    display: grid;
+    place-items: center;
+    margin-bottom: 13px;
+    border-radius: 16px;
+    background: #f0fdfa;
+    color: #0f766e;
+    font-size: 24px;
+}
+
+.document-empty h3 {
+    margin: 0 0 6px;
+    color: #334155;
+    font-size: 16px;
+}
+
+.document-empty p {
+    max-width: 410px;
+    margin: 0;
+    color: #94a3b8;
+    font-size: 12px;
+    line-height: 1.6;
+}
+
+
+/* =========================================================
+   FOOTER
+   ========================================================= */
+
+.knowledge-footer {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-top: 30px;
+    padding: 18px;
+    border: 1px solid #e7edf1;
+    border-radius: 14px;
+    background: #f8fafc;
+}
+
+.knowledge-footer-icon {
+    width: 30px;
+    height: 30px;
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    border-radius: 9px;
+    background: #ffffff;
+    color: #0f766e;
+}
+
+.knowledge-footer strong {
+    display: block;
+    margin-bottom: 4px;
+    color: #475569;
+    font-size: 11px;
+}
+
+.knowledge-footer p {
+    max-width: 760px;
+    margin: 0;
+    color: #94a3b8;
+    font-size: 10px;
+    line-height: 1.6;
+}
+
+
+/* =========================================================
+   TABLET
+   ========================================================= */
+
+@media (max-width: 900px) {
+
+    .document-upload-form {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .document-upload-button {
+        width: 100%;
+    }
+
+    .document-upload-form .document-title-field {
+        grid-column: 1 / -1;
+    }
+
+    .document-upload-form .document-file-field {
+        grid-column: 1 / 2;
+    }
+
+    .document-upload-form .document-upload-button {
+        grid-column: 2 / 3;
+    }
+}
+
+
+/* =========================================================
+   MOBILE
+   ========================================================= */
+
+@media (max-width: 640px) {
+
+    .documents-page {
+        padding-left: 14px;
+        padding-right: 14px;
+    }
+
+    .documents-header {
+        align-items: flex-start;
+    }
+
+    .documents-header-icon {
+        width: 52px;
+        height: 52px;
+        border-radius: 16px;
+    }
+
+        .documents-header-icon span {
+            font-size: 22px;
+        }
+
+    .documents-title {
+        font-size: 30px;
+    }
+
+    .document-stats {
+        grid-template-columns: 1fr;
+    }
+
+    .knowledge-banner {
+        padding: 15px;
+    }
+
+    .document-upload-card {
+        padding: 17px;
+    }
+
+    .document-upload-form {
+        grid-template-columns: 1fr;
+    }
+
+        .document-upload-form .document-title-field,
+        .document-upload-form .document-file-field,
+        .document-upload-form .document-upload-button {
+            grid-column: auto;
+        }
+
+    .document-upload-button {
+        width: 100%;
+    }
+
+    .file-drop-zone {
+        height: 54px;
+    }
+
+    .file-drop-hint {
+        display: none;
+    }
+
+    .documents-section-header {
+        align-items: center;
+    }
+
+    .document-card {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .document-card-main {
+        width: 100%;
+    }
+
+    .document-actions {
+        width: 100%;
+    }
+
+    .document-action-approve,
+    .document-action-reject {
+        flex: 1;
+    }
+
+    .document-title-row h3 {
+        max-width: 100%;
+        white-space: normal;
+    }
+
+    .knowledge-footer {
+        padding: 14px;
+    }
+}

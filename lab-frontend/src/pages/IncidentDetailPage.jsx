@@ -2,204 +2,888 @@ import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { api } from '../api/client'
 import { useAuth } from '../context/AuthContext'
-import StatusBadge from '../components/StatusBadge'
-import SeverityBadge from '../components/SeverityBadge'
+import "../styles/incidentDetail.css";
 
-// What status an incident is allowed to move to next (mirrors the backend rule,
-// just for showing the right buttons — the backend is still the source of truth).
+
+// --------------------------------------------------
+// STATUS FLOW
+// --------------------------------------------------
+
 const NEXT_STATUS = {
-  Open: ['Investigating'],
-  Investigating: ['Resolved', 'Open'],
-  Resolved: ['Closed', 'Investigating'],
-  Closed: [],
+    Open: ['Investigating'],
+    Investigating: ['Resolved'],
+    Resolved: ['Closed', 'Investigating'],
+    Closed: []
 }
 
+
+// --------------------------------------------------
+// STATUS DISPLAY HELPERS
+// --------------------------------------------------
+
+function statusClass(status) {
+    switch (status) {
+        case 'Open':
+            return 'status-badge status-open'
+
+        case 'Investigating':
+            return 'status-badge status-investigating'
+
+        case 'Resolved':
+            return 'status-badge status-resolved'
+
+        case 'Closed':
+            return 'status-badge status-closed'
+
+        default:
+            return 'status-badge'
+    }
+}
+
+
+function severityClass(severity) {
+    switch (severity) {
+        case 'Low':
+            return 'severity-badge severity-low'
+
+        case 'Medium':
+            return 'severity-badge severity-medium'
+
+        case 'High':
+            return 'severity-badge severity-high'
+
+        case 'Critical':
+            return 'severity-badge severity-critical'
+
+        default:
+            return 'severity-badge'
+    }
+}
+
+
+// --------------------------------------------------
+// DATE / TIME FORMAT
+// --------------------------------------------------
+
+function formatDateTime(value) {
+    if (!value) return '—'
+
+    const date = new Date(value)
+
+    if (Number.isNaN(date.getTime())) {
+        return value
+    }
+
+    return date.toLocaleString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit'
+    })
+}
+
+
+// --------------------------------------------------
+// MAIN PAGE
+// --------------------------------------------------
+
 export default function IncidentDetailPage() {
-  const { id } = useParams()
-  const { user } = useAuth()
 
-  const [incident, setIncident] = useState(null)
-  const [error, setError] = useState('')
-  const [noteText, setNoteText] = useState('')
-  const [actionText, setActionText] = useState('')
-  const [summary, setSummary] = useState(null)
-  const [summaryLoading, setSummaryLoading] = useState(false)
-  const [summaryError, setSummaryError] = useState('')
+    const { id } = useParams()
+    const { user } = useAuth()
 
-  const canReview = user?.role === 'Reviewer' || user?.role === 'Administrator'
+    const [incident, setIncident] = useState(null)
 
-  function reload() {
-    api.get(`/incidents/${id}`).then(setIncident).catch(err => setError(err.message))
-  }
+    const [loading, setLoading] = useState(true)
+    const [error, setError] = useState('')
 
-  useEffect(reload, [id])
+    const [changingStatus, setChangingStatus] = useState(false)
 
-  async function changeStatus(newStatus) {
-    setError('')
-    try {
-      await api.patch(`/incidents/${id}/status`, { newStatus })
-      reload()
-    } catch (err) {
-      setError(err.message)
+    const [aiSummary, setAiSummary] = useState(null)
+    const [generatingAi, setGeneratingAi] = useState(false)
+
+    const [noteText, setNoteText] = useState('')
+    const [addingNote, setAddingNote] = useState(false)
+
+    const [actionText, setActionText] = useState('')
+    const [actionDueDate, setActionDueDate] = useState('')
+    const [addingAction, setAddingAction] = useState(false)
+
+
+    // --------------------------------------------------
+    // LOAD INCIDENT
+    // --------------------------------------------------
+
+    async function loadIncident() {
+        setLoading(true)
+        setError('')
+
+        try {
+            const result = await api.get(`/incidents/${id}`)
+            setIncident(result)
+        } catch (err) {
+            setError(err.message || 'Unable to load incident.')
+        } finally {
+            setLoading(false)
+        }
     }
-  }
 
-  async function addNote(e) {
-    e.preventDefault()
-    if (!noteText.trim()) return
-    await api.post(`/incidents/${id}/notes`, { content: noteText })
-    setNoteText('')
-    reload()
-  }
 
-  async function addAction(e) {
-    e.preventDefault()
-    if (!actionText.trim()) return
-    await api.post(`/incidents/${id}/corrective-actions`, { description: actionText })
-    setActionText('')
-    reload()
-  }
+    useEffect(() => {
+        loadIncident()
+    }, [id])
 
-  async function getAiSummary() {
-    setSummaryLoading(true)
-    setSummaryError('')
-    try {
-      const result = await api.get(`/ai/incidents/${id}/summary`)
-      setSummary(result)
-    } catch (err) {
-      setSummaryError(err.message)
-    } finally {
-      setSummaryLoading(false)
+
+    // --------------------------------------------------
+    // CHANGE STATUS
+    // --------------------------------------------------
+
+    async function changeStatus(newStatus) {
+
+        if (!incident) return
+
+        setChangingStatus(true)
+        setError('')
+
+        try {
+
+            await api.patch(`/incidents/${incident.id}/status`, {
+                newStatus: newStatus
+            })
+
+            await loadIncident()
+
+        } catch (err) {
+
+            setError(
+                err.message || 'Unable to change the incident status.'
+            )
+
+        } finally {
+
+            setChangingStatus(false)
+
+        }
     }
-  }
 
-  if (error) return <div className="app-shell"><div className="error-banner">{error}</div></div>
-  if (!incident) return <div className="app-shell">Loading…</div>
 
-  return (
-    <div className="app-shell" style={{ maxWidth: 820 }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-        <div>
-          <div className="mono" style={{ color: 'var(--color-ink-soft)', fontSize: 13 }}>#{incident.id}</div>
-          <h1 style={{ margin: '4px 0' }}>{incident.title}</h1>
-          <div style={{ display: 'flex', gap: 8 }}>
-            <SeverityBadge severity={incident.severity} />
-            <StatusBadge status={incident.status} />
-          </div>
-        </div>
-      </div>
+    // --------------------------------------------------
+    // GENERATE AI SUMMARY
+    // --------------------------------------------------
 
-      <div className="card" style={{ marginTop: 20 }}>
-        <p>{incident.description}</p>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, fontSize: 13, color: 'var(--color-ink-soft)' }}>
-          <div><strong>Category:</strong> {incident.category}</div>
-          <div><strong>Equipment:</strong> {incident.equipment || '—'}</div>
-          <div><strong>Occurred:</strong> {new Date(incident.occurredAtUtc).toLocaleString()}</div>
-          <div><strong>Reported by:</strong> {incident.createdByName}</div>
-          <div><strong>Assigned to:</strong> {incident.assignedToName || 'Unassigned'}</div>
-          <div><strong>Last updated:</strong> {new Date(incident.updatedAtUtc).toLocaleString()}</div>
-        </div>
-        {incident.resolutionDetails && (
-          <div style={{ marginTop: 12, padding: 12, background: 'var(--color-teal-tint)', borderRadius: 6 }}>
-            <strong>Resolution:</strong> {incident.resolutionDetails}
-          </div>
-        )}
-      </div>
+    async function generateAiSummary() {
 
-      {/* --- Workflow actions --- */}
-      {canReview && NEXT_STATUS[incident.status]?.length > 0 && (
-        <div className="card" style={{ marginTop: 16 }}>
-          <label style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-ink-soft)', textTransform: 'uppercase' }}>
-            Move status
-          </label>
-          <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
-            {NEXT_STATUS[incident.status].map(s => (
-              <button key={s} className="btn btn-secondary" onClick={() => changeStatus(s)}>
-                Move to {s}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
+        if (!incident) return
 
-      {/* --- AI Summary --- */}
-      <div className="card" style={{ marginTop: 16 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <h3 style={{ margin: 0 }}>AI summary &amp; next step</h3>
-          <button className="btn btn-secondary" onClick={getAiSummary} disabled={summaryLoading}>
-            {summaryLoading ? 'Thinking…' : 'Generate'}
-          </button>
-        </div>
-        {summaryError && <div className="error-banner" style={{ marginTop: 12 }}>{summaryError}</div>}
-        {summary && (
-          <div style={{ marginTop: 12 }}>
-            <p>{summary.summary}</p>
-            <p><strong>Suggested next step:</strong> {summary.suggestedNextStep}</p>
-            {summary.relatedKnowledge.length > 0 && (
-              <details>
-                <summary style={{ cursor: 'pointer', fontSize: 13, color: 'var(--color-ink-soft)' }}>
-                  Related knowledge used ({summary.relatedKnowledge.length})
-                </summary>
-                <ul style={{ fontSize: 13 }}>
-                  {summary.relatedKnowledge.map((s, i) => (
-                    <li key={i}>{s.documentTitle} — <em>{s.snippet}</em> (similarity {s.similarityScore})</li>
-                  ))}
-                </ul>
-              </details>
-            )}
-          </div>
-        )}
-      </div>
+        setGeneratingAi(true)
+        setError('')
 
-      {/* --- Investigation notes --- */}
-      <div className="card" style={{ marginTop: 16 }}>
-        <h3>Investigation notes</h3>
-        {incident.investigationNotes?.length ? (
-          <ul style={{ paddingLeft: 18, fontSize: 14 }}>
-            {incident.investigationNotes.map(n => (
-              <li key={n.id} style={{ marginBottom: 6 }}>
-                {n.content}
-                <span className="mono" style={{ color: 'var(--color-ink-soft)', fontSize: 12 }}>
-                  {' '}— {n.authorName}, {new Date(n.createdAtUtc).toLocaleString()}
-                </span>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p style={{ color: 'var(--color-ink-soft)', fontSize: 14 }}>No notes yet.</p>
-        )}
-        <form onSubmit={addNote} style={{ display: 'flex', gap: 8, marginTop: 8 }}>
-          <input style={{ flex: 1, padding: 9, border: '1px solid var(--color-border)', borderRadius: 4 }}
-                 placeholder="Add an investigation note…" value={noteText} onChange={e => setNoteText(e.target.value)} />
-          <button className="btn btn-secondary">Add</button>
-        </form>
-      </div>
+        try {
 
-      {/* --- Corrective actions --- */}
-      <div className="card" style={{ marginTop: 16 }}>
-        <h3>Corrective actions</h3>
-        {incident.correctiveActions?.length ? (
-          <ul style={{ paddingLeft: 18, fontSize: 14 }}>
-            {incident.correctiveActions.map(a => (
-              <li key={a.id} style={{ marginBottom: 6 }}>
-                {a.isCompleted ? '✅' : '⬜️'} {a.description}
-                {a.dueDateUtc && (
-                  <span className="mono" style={{ color: 'var(--color-ink-soft)', fontSize: 12 }}>
-                    {' '}— due {new Date(a.dueDateUtc).toLocaleDateString()}
-                  </span>
+            const result = await api.get(
+                `/ai/incidents/${incident.id}/summary`
+            )
+
+            setAiSummary(result)
+
+        } catch (err) {
+
+            setError(
+                err.message || 'Unable to generate AI summary.'
+            )
+
+        } finally {
+
+            setGeneratingAi(false)
+
+        }
+    }
+
+
+    // --------------------------------------------------
+    // ADD INVESTIGATION NOTE
+    // --------------------------------------------------
+
+    async function addNote() {
+
+        if (!noteText.trim() || !incident) return
+
+        setAddingNote(true)
+        setError('')
+
+        try {
+
+            await api.post(
+                `/incidents/${incident.id}/notes`,
+                {
+                    content: noteText.trim()
+                }
+            )
+
+            setNoteText('')
+
+            await loadIncident()
+
+        } catch (err) {
+
+            setError(
+                err.message || 'Unable to add investigation note.'
+            )
+
+        } finally {
+
+            setAddingNote(false)
+
+        }
+    }
+
+
+    // --------------------------------------------------
+    // ADD CORRECTIVE ACTION
+    // --------------------------------------------------
+
+    async function addCorrectiveAction() {
+
+        if (!actionText.trim() || !incident) return
+
+        setAddingAction(true)
+        setError('')
+
+        try {
+
+            await api.post(
+                `/incidents/${incident.id}/corrective-actions`,
+                {
+                    description: actionText.trim(),
+                    dueDateUtc: actionDueDate
+                        ? new Date(actionDueDate).toISOString()
+                        : null
+                }
+            )
+
+            setActionText('')
+            setActionDueDate('')
+
+            await loadIncident()
+
+        } catch (err) {
+
+            setError(
+                err.message || 'Unable to add corrective action.'
+            )
+
+        } finally {
+
+            setAddingAction(false)
+
+        }
+    }
+
+
+    // --------------------------------------------------
+    // LOADING
+    // --------------------------------------------------
+
+    if (loading) {
+
+        return (
+            <div className="incident-page">
+
+                <div className="incident-container">
+
+                    <div className="detail-loading">
+                        Loading incident...
+                    </div>
+
+                </div>
+
+            </div>
+        )
+    }
+
+
+    // --------------------------------------------------
+    // ERROR / NOT FOUND
+    // --------------------------------------------------
+
+    if (!incident) {
+
+        return (
+            <div className="incident-page">
+
+                <div className="incident-container">
+
+                    <div className="detail-error">
+
+                        <h2>Unable to load incident</h2>
+
+                        <p>
+                            {error || 'Incident not found.'}
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </div>
+        )
+    }
+
+
+    // --------------------------------------------------
+    // PERMISSIONS
+    // --------------------------------------------------
+
+    const canChangeStatus =
+        user?.role === 'Reviewer' ||
+        user?.role === 'Administrator'
+
+
+    const availableStatuses =
+        NEXT_STATUS[incident.status] || []
+
+
+    // --------------------------------------------------
+    // RENDER
+    // --------------------------------------------------
+
+    return (
+
+        <div className="incident-page">
+
+            <div className="incident-container">
+
+
+                {/* ==========================================
+            ERROR MESSAGE
+        ========================================== */}
+
+                {error && (
+
+                    <div className="incident-error">
+                        {error}
+                    </div>
+
                 )}
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p style={{ color: 'var(--color-ink-soft)', fontSize: 14 }}>No corrective actions logged yet.</p>
-        )}
-        <form onSubmit={addAction} style={{ display: 'flex', gap: 8, marginTop: 8 }}>
-          <input style={{ flex: 1, padding: 9, border: '1px solid var(--color-border)', borderRadius: 4 }}
-                 placeholder="Add a corrective action…" value={actionText} onChange={e => setActionText(e.target.value)} />
-          <button className="btn btn-secondary">Add</button>
-        </form>
-      </div>
-    </div>
-  )
+
+
+                {/* ==========================================
+            HERO
+        ========================================== */}
+
+                <section className="incident-hero">
+
+                    <div className="incident-eyebrow">
+                        INCIDENT #{incident.id}
+                    </div>
+
+                    <h1>
+                        {incident.title}
+                    </h1>
+
+                    <div className="incident-hero-badges">
+
+                        <span className={severityClass(incident.severity)}>
+                            <span className="badge-dot"></span>
+                            {incident.severity}
+                        </span>
+
+                        <span className={statusClass(incident.status)}>
+                            <span className="badge-dot"></span>
+                            {incident.status}
+                        </span>
+
+                    </div>
+
+                </section>
+
+
+                {/* ==========================================
+            INCIDENT INFORMATION
+        ========================================== */}
+
+                <section className="detail-card">
+
+                    <div className="section-heading">
+
+                        <div>
+                            <span className="section-kicker">
+                                INCIDENT INFORMATION
+                            </span>
+
+                            <h2>Incident details</h2>
+                        </div>
+
+                    </div>
+
+
+                    <div className="incident-description">
+                        {incident.description}
+                    </div>
+
+
+                    <div className="detail-grid">
+
+                        <div className="detail-item">
+
+                            <span className="detail-label">
+                                Category
+                            </span>
+
+                            <span className="detail-value">
+                                {incident.category || '—'}
+                            </span>
+
+                        </div>
+
+
+                        <div className="detail-item">
+
+                            <span className="detail-label">
+                                Equipment
+                            </span>
+
+                            <span className="detail-value">
+                                {incident.equipment || '—'}
+                            </span>
+
+                        </div>
+
+
+                        <div className="detail-item">
+
+                            <span className="detail-label">
+                                Occurred
+                            </span>
+
+                            <span className="detail-value">
+                                {formatDateTime(incident.occurredAtUtc)}
+                            </span>
+
+                        </div>
+
+
+                        <div className="detail-item">
+
+                            <span className="detail-label">
+                                Reported by
+                            </span>
+
+                            <span className="detail-value">
+                                {incident.createdByName || '—'}
+                            </span>
+
+                        </div>
+
+
+                        <div className="detail-item">
+
+                            <span className="detail-label">
+                                Last updated
+                            </span>
+
+                            <span className="detail-value">
+                                {formatDateTime(incident.updatedAtUtc)}
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                </section>
+
+
+                {/* ==========================================
+            STATUS WORKFLOW
+        ========================================== */}
+
+                <section className="detail-card workflow-card">
+
+                    <div className="section-heading">
+
+                        <div>
+
+                            <span className="section-kicker">
+                                INCIDENT WORKFLOW
+                            </span>
+
+                            <h2>
+                                Change incident status
+                            </h2>
+
+                        </div>
+
+                    </div>
+
+
+                    <div className="current-status-row">
+
+                        <span>
+                            Current status
+                        </span>
+
+                        <span className={statusClass(incident.status)}>
+                            <span className="badge-dot"></span>
+                            {incident.status}
+                        </span>
+
+                    </div>
+
+
+                    {canChangeStatus && availableStatuses.length > 0 ? (
+
+                        <div className="status-actions">
+
+                            {availableStatuses.map(nextStatus => (
+
+                                <button
+                                    key={nextStatus}
+                                    className={`status-action-btn ${nextStatus === 'Closed'
+                                            ? 'status-action-danger'
+                                            : nextStatus === 'Investigating'
+                                                ? 'status-action-secondary'
+                                                : 'status-action-primary'
+                                        }`}
+                                    onClick={() => changeStatus(nextStatus)}
+                                    disabled={changingStatus}
+                                >
+
+                                    {changingStatus
+                                        ? 'Updating...'
+                                        : `Move to ${nextStatus}`}
+
+                                </button>
+
+                            ))}
+
+                        </div>
+
+                    ) : (
+
+                        <div className="workflow-message">
+
+                            {incident.status === 'Closed'
+                                ? 'This incident is closed and has no further status transitions.'
+                                : canChangeStatus
+                                    ? 'No further status transitions are available.'
+                                    : 'Only Reviewers and Administrators can change the incident status.'}
+
+                        </div>
+
+                    )}
+
+                </section>
+
+
+                {/* ==========================================
+            AI ASSISTANCE
+        ========================================== */}
+
+                <section className="detail-card ai-card">
+
+                    <div className="ai-header">
+
+                        <div>
+
+                            <span className="section-kicker">
+                                AI ASSISTANCE
+                            </span>
+
+                            <h2>
+                                AI summary & next step
+                            </h2>
+
+                        </div>
+
+                        <button
+                            className="btn-ai"
+                            onClick={generateAiSummary}
+                            disabled={generatingAi}
+                        >
+
+                            {generatingAi
+                                ? 'Generating...'
+                                : 'Generate'}
+
+                        </button>
+
+                    </div>
+
+
+                    {aiSummary ? (
+
+                        <div className="ai-result">
+
+                            <div className="ai-result-block">
+
+                                <h3>Summary</h3>
+
+                                <div className="ai-text">
+                                    {aiSummary.summary}
+                                </div>
+
+                            </div>
+
+
+                            {aiSummary.suggestedNextStep && (
+
+                                <div className="ai-next-step">
+
+                                    <span className="next-step-label">
+                                        Suggested next step
+                                    </span>
+
+                                    <p>
+                                        {aiSummary.suggestedNextStep}
+                                    </p>
+
+                                </div>
+
+                            )}
+
+                        </div>
+
+                    ) : (
+
+                        <p className="empty-description">
+                            Generate an AI-powered summary and suggested next
+                            investigative step using the approved knowledge base.
+                        </p>
+
+                    )}
+
+                </section>
+
+
+                {/* ==========================================
+            INVESTIGATION NOTES
+        ========================================== */}
+
+                <section className="detail-card">
+
+                    <div className="section-heading">
+
+                        <div>
+
+                            <span className="section-kicker">
+                                INVESTIGATION
+                            </span>
+
+                            <h2>
+                                Investigation notes
+                            </h2>
+
+                        </div>
+
+                        <span className="section-count">
+                            {incident.investigationNotes?.length || 0}
+                        </span>
+
+                    </div>
+
+
+                    {incident.investigationNotes?.length > 0 ? (
+
+                        <div className="notes-list">
+
+                            {incident.investigationNotes.map(note => (
+
+                                <div
+                                    className="note-item"
+                                    key={note.id}
+                                >
+
+                                    <div className="note-content">
+                                        {note.content}
+                                    </div>
+
+                                    <div className="note-meta">
+
+                                        <span>
+                                            {note.authorName}
+                                        </span>
+
+                                        <span>
+                                            {formatDateTime(note.createdAtUtc)}
+                                        </span>
+
+                                    </div>
+
+                                </div>
+
+                            ))}
+
+                        </div>
+
+                    ) : (
+
+                        <p className="empty-description">
+                            No investigation notes yet.
+                        </p>
+
+                    )}
+
+
+                    <div className="add-form">
+
+                        <input
+                            type="text"
+                            value={noteText}
+                            onChange={e => setNoteText(e.target.value)}
+                            placeholder="Add an investigation note..."
+                            onKeyDown={e => {
+                                if (e.key === 'Enter') {
+                                    addNote()
+                                }
+                            }}
+                        />
+
+                        <button
+                            className="btn-primary"
+                            onClick={addNote}
+                            disabled={
+                                addingNote ||
+                                !noteText.trim()
+                            }
+                        >
+
+                            {addingNote
+                                ? 'Adding...'
+                                : 'Add'}
+
+                        </button>
+
+                    </div>
+
+                </section>
+
+
+                {/* ==========================================
+            CORRECTIVE ACTIONS
+        ========================================== */}
+
+                <section className="detail-card">
+
+                    <div className="section-heading">
+
+                        <div>
+
+                            <span className="section-kicker">
+                                FOLLOW-UP
+                            </span>
+
+                            <h2>
+                                Corrective actions
+                            </h2>
+
+                        </div>
+
+                        <span className="section-count">
+                            {incident.correctiveActions?.length || 0}
+                        </span>
+
+                    </div>
+
+
+                    {incident.correctiveActions?.length > 0 ? (
+
+                        <div className="actions-list">
+
+                            {incident.correctiveActions.map(action => (
+
+                                <div
+                                    className="action-item"
+                                    key={action.id}
+                                >
+
+                                    <div className="action-main">
+
+                                        <span className="action-description">
+                                            {action.description}
+                                        </span>
+
+                                        <div className="action-meta">
+
+                                            {action.dueDateUtc && (
+
+                                                <span>
+                                                    Due {formatDateTime(action.dueDateUtc)}
+                                                </span>
+
+                                            )}
+
+                                        </div>
+
+                                    </div>
+
+
+                                    <span
+                                        className={
+                                            action.isCompleted
+                                                ? 'completion-badge completed'
+                                                : 'completion-badge pending'
+                                        }
+                                    >
+
+                                        {action.isCompleted
+                                            ? 'Completed'
+                                            : 'Pending'}
+
+                                    </span>
+
+                                </div>
+
+                            ))}
+
+                        </div>
+
+                    ) : (
+
+                        <p className="empty-description">
+                            No corrective actions logged yet.
+                        </p>
+
+                    )}
+
+
+                    <div className="corrective-form">
+
+                        <input
+                            type="text"
+                            value={actionText}
+                            onChange={e => setActionText(e.target.value)}
+                            placeholder="Add a corrective action..."
+                        />
+
+                        <input
+                            type="date"
+                            value={actionDueDate}
+                            onChange={e => setActionDueDate(e.target.value)}
+                        />
+
+                        <button
+                            className="btn-primary"
+                            onClick={addCorrectiveAction}
+                            disabled={
+                                addingAction ||
+                                !actionText.trim()
+                            }
+                        >
+
+                            {addingAction
+                                ? 'Adding...'
+                                : 'Add'}
+
+                        </button>
+
+                    </div>
+
+                </section>
+
+
+            </div>
+
+        </div>
+    )
 }

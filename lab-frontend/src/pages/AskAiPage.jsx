@@ -1,80 +1,515 @@
 import { useState } from 'react'
 import { api } from '../api/client'
+import '../styles/askai.css'
 
 export default function AskAiPage() {
-  const [question, setQuestion] = useState('')
-  const [history, setHistory] = useState([]) // list of {question, response}
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
+    const [question, setQuestion] = useState('')
+    const [history, setHistory] = useState([])
+    const [loading, setLoading] = useState(false)
+    const [error, setError] = useState('')
 
-  async function handleAsk(e) {
-    e.preventDefault()
-    if (!question.trim()) return
-    setError('')
-    setLoading(true)
-    const askedQuestion = question
-    setQuestion('')
-    try {
-      const response = await api.post('/ai/ask', { question: askedQuestion })
-      setHistory(prev => [{ question: askedQuestion, response }, ...prev])
-    } catch (err) {
-      setError(err.message)
-    } finally {
-      setLoading(false)
+    async function handleAsk(e) {
+        e.preventDefault()
+
+        if (!question.trim()) return
+
+        setError('')
+        setLoading(true)
+
+        const askedQuestion = question
+        setQuestion('')
+
+        try {
+            const response = await api.post('/ai/ask', {
+                question: askedQuestion
+            })
+
+            setHistory(prev => [
+                {
+                    question: askedQuestion,
+                    response
+                },
+                ...prev
+            ])
+        } catch (err) {
+            setError(err.message)
+        } finally {
+            setLoading(false)
+        }
     }
-  }
 
-  return (
-    <div className="app-shell" style={{ maxWidth: 760 }}>
-      <h1>Ask the AI assistant</h1>
-      <p style={{ color: 'var(--color-ink-soft)' }}>
-        Answers are grounded in the uploaded knowledge base only. If nothing relevant
-        has been uploaded, the assistant will say so instead of guessing.
-      </p>
+    function useSuggestion(text) {
+        setQuestion(text)
+    }
 
-      <form onSubmit={handleAsk} className="card" style={{ display: 'flex', gap: 8, marginBottom: 20 }}>
-        <input style={{ flex: 1, padding: 9, border: '1px solid var(--color-border)', borderRadius: 4 }}
-               placeholder="e.g. What should I do if a centrifuge overheats?"
-               value={question} onChange={e => setQuestion(e.target.value)} />
-        <button className="btn btn-primary" disabled={loading}>{loading ? 'Thinking…' : 'Ask'}</button>
-      </form>
+    return (
+        <div className="app-shell ask-ai-page">
 
-      {error && <div className="error-banner">{error}</div>}
+            {/* =====================================================
+          HEADER
+          ===================================================== */}
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-        {history.map((entry, i) => (
-          <div key={i} className="card">
-            <div style={{ fontWeight: 600, marginBottom: 8 }}>Q: {entry.question}</div>
+            <div className="ai-page-header">
 
-            {!entry.response.isGrounded && (
-              <div className="error-banner" style={{ background: '#FDF3E3', color: '#8A6116', border: '1px solid #F0DBA8' }}>
-                Not grounded in the knowledge base — treat this answer with caution.
-              </div>
+                <div className="ai-header-content">
+
+                    <div className="ai-eyebrow">
+                        LABTRACK INTELLIGENCE
+                    </div>
+
+                    <h1>
+                        Ask the AI assistant
+                    </h1>
+
+                    <p>
+                        Get answers grounded in your laboratory's
+                        approved knowledge base.
+                    </p>
+
+                </div>
+
+
+                <div className="ai-header-orb">
+                    <div className="ai-orb-inner">
+                        ✦
+                    </div>
+                </div>
+
+            </div>
+
+
+            {/* =====================================================
+          TRUST BANNER
+          ===================================================== */}
+
+            <div className="ai-trust-banner">
+
+                <div className="ai-trust-icon">
+                    ✓
+                </div>
+
+                <div>
+
+                    <strong>
+                        Grounded AI responses
+                    </strong>
+
+                    <p>
+                        The assistant uses approved knowledge-base documents
+                        instead of relying on the open internet or guessing.
+                    </p>
+
+                </div>
+
+                <div className="ai-trust-status">
+                    Knowledge base only
+                </div>
+
+            </div>
+
+
+            {/* =====================================================
+          ASK BOX
+          ===================================================== */}
+
+            <section className="ai-question-card">
+
+                <div className="ai-question-heading">
+
+                    <div className="ai-question-icon">
+                        ?
+                    </div>
+
+                    <div>
+                        <h2>
+                            What can I help you with?
+                        </h2>
+
+                        <p>
+                            Ask about laboratory procedures, incidents,
+                            equipment or safety practices.
+                        </p>
+                    </div>
+
+                </div>
+
+
+                <form
+                    onSubmit={handleAsk}
+                    className="ai-question-form"
+                >
+
+                    <div className="ai-input-wrapper">
+
+                        <textarea
+                            value={question}
+                            onChange={e => setQuestion(e.target.value)}
+                            placeholder="e.g. What should I do if a centrifuge overheats?"
+                            rows={3}
+                            disabled={loading}
+                        />
+
+                        <div className="ai-input-footer">
+
+                            <span>
+                                {question.length > 0
+                                    ? `${question.length} characters`
+                                    : 'Ask a clear, specific question'}
+                            </span>
+
+                            <button
+                                className="btn btn-primary ai-ask-button"
+                                disabled={loading || !question.trim()}
+                                type="submit"
+                            >
+
+                                {loading ? (
+                                    <>
+                                        <span className="ai-spinner" />
+                                        Thinking…
+                                    </>
+                                ) : (
+                                    <>
+                                        Ask AI
+                                        <span className="ai-send-arrow">
+                                            →
+                                        </span>
+                                    </>
+                                )}
+
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                </form>
+
+
+                {/* =================================================
+            SUGGESTIONS
+            ================================================= */}
+
+                <div className="ai-suggestions">
+
+                    <span className="ai-suggestions-label">
+                        Try asking
+                    </span>
+
+                    <div className="ai-suggestion-list">
+
+                        <button
+                            type="button"
+                            onClick={() =>
+                                useSuggestion(
+                                    'What should I do if a centrifuge overheats?'
+                                )
+                            }
+                        >
+                            Centrifuge overheating
+                        </button>
+
+                        <button
+                            type="button"
+                            onClick={() =>
+                                useSuggestion(
+                                    'What should I do during a chemical spill in the fume hood?'
+                                )
+                            }
+                        >
+                            Chemical spill
+                        </button>
+
+                        <button
+                            type="button"
+                            onClick={() =>
+                                useSuggestion(
+                                    'What are the recommended laboratory safety procedures?'
+                                )
+                            }
+                        >
+                            Lab safety procedures
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            {/* =====================================================
+          ERROR
+          ===================================================== */}
+
+            {error && (
+
+                <div className="ai-error">
+
+                    <div className="ai-error-icon">
+                        !
+                    </div>
+
+                    <div>
+                        <strong>
+                            Unable to get an answer
+                        </strong>
+
+                        <p>
+                            {error}
+                        </p>
+                    </div>
+
+                </div>
+
             )}
 
-            <ul style={{ margin: '0 0 8px 0', paddingLeft: 18 }}>
-  {entry.response.answer.split('\n').filter(line => line.trim()).map((line, k) => (
-    <li key={k} style={{ marginBottom: 4 }}>{line.replace(/^-\s*/, '')}</li>
-  ))}
-</ul>
 
-            {entry.response.sources?.length > 0 && (
-              <details>
-                <summary style={{ cursor: 'pointer', fontSize: 13, color: 'var(--color-ink-soft)' }}>
-                  Sources ({entry.response.sources.length})
-                </summary>
-                <ul style={{ fontSize: 13 }}>
-                  {entry.response.sources.map((s, j) => (
-                    <li key={j}>
-                      <strong>{s.documentTitle}</strong> (chunk {s.chunkIndex}, similarity {s.similarityScore}) — <em>{s.snippet}</em>
-                    </li>
-                  ))}
-                </ul>
-              </details>
+            {/* =====================================================
+          ANSWERS
+          ===================================================== */}
+
+            {history.length > 0 && (
+
+                <section className="ai-history">
+
+                    <div className="ai-history-header">
+
+                        <div>
+                            <div className="ai-eyebrow">
+                                CONVERSATION
+                            </div>
+
+                            <h2>
+                                Previous answers
+                            </h2>
+                        </div>
+
+                        <span className="ai-history-count">
+                            {history.length}
+                            {history.length === 1 ? ' question' : ' questions'}
+                        </span>
+
+                    </div>
+
+
+                    <div className="ai-answer-list">
+
+                        {history.map((entry, i) => (
+
+                            <article
+                                key={i}
+                                className="ai-answer-card"
+                            >
+
+                                {/* QUESTION */}
+
+                                <div className="ai-question-row">
+
+                                    <div className="ai-avatar user-avatar">
+                                        You
+                                    </div>
+
+                                    <div className="ai-question-text">
+                                        {entry.question}
+                                    </div>
+
+                                </div>
+
+
+                                {/* ANSWER */}
+
+                                <div className="ai-response-row">
+
+                                    <div className="ai-avatar ai-avatar-main">
+                                        ✦
+                                    </div>
+
+                                    <div className="ai-response-content">
+
+                                        <div className="ai-response-header">
+
+                                            <strong>
+                                                LabTrack AI
+                                            </strong>
+
+                                            {entry.response.isGrounded ? (
+                                                <span className="grounded-badge">
+                                                    ✓ Grounded
+                                                </span>
+                                            ) : (
+                                                <span className="ungrounded-badge">
+                                                    ⚠ Not grounded
+                                                </span>
+                                            )}
+
+                                        </div>
+
+
+                                        {/* WARNING */}
+
+                                        {!entry.response.isGrounded && (
+
+                                            <div className="ai-grounding-warning">
+
+                                                <span>
+                                                    ⚠
+                                                </span>
+
+                                                <div>
+                                                    <strong>
+                                                        Not grounded in the knowledge base
+                                                    </strong>
+
+                                                    <p>
+                                                        Treat this answer with caution because
+                                                        no sufficiently relevant approved source
+                                                        was found.
+                                                    </p>
+                                                </div>
+
+                                            </div>
+
+                                        )}
+
+
+                                        {/* ANSWER */}
+
+                                        <div className="ai-answer-text">
+                                            {entry.response.answer
+                                                .split(/\r?\n/)
+                                                .map(line => line.trim())
+                                                .filter(line => line.length > 0)
+                                                .map((line, k) => {
+
+                                                    const isBullet =
+                                                        line.startsWith('-') ||
+                                                        line.startsWith('•') ||
+                                                        line.startsWith('*')
+
+                                                    const cleanLine = line.replace(/^[-•*]\s*/, '')
+
+                                                    return isBullet ? (
+                                                        <div key={k} className="ai-answer-bullet">
+                                                            <span className="bullet-dot">•</span>
+                                                            <span>{cleanLine}</span>
+                                                        </div>
+                                                    ) : (
+                                                        <div key={k} className="ai-answer-paragraph">
+                                                            {cleanLine}
+                                                        </div>
+                                                    )
+                                                })}
+                                        </div>
+
+
+                                        {/* SOURCES */}
+
+                                        {entry.response.sources?.length > 0 && (
+
+                                            <details className="ai-sources">
+
+                                                <summary>
+                                                    <span className="source-icon">
+                                                        ◫
+                                                    </span>
+
+                                                    <span>
+                                                        {entry.response.sources.length}
+                                                        {' '}
+                                                        {entry.response.sources.length === 1
+                                                            ? 'source'
+                                                            : 'sources'}
+                                                        {' '}used
+                                                    </span>
+
+                                                    <span className="source-chevron">
+                                                        ▾
+                                                    </span>
+                                                </summary>
+
+
+                                                <div className="source-list">
+
+                                                    {entry.response.sources.map((s, j) => (
+
+                                                        <div
+                                                            key={j}
+                                                            className="source-item"
+                                                        >
+
+                                                            <div className="source-number">
+                                                                {j + 1}
+                                                            </div>
+
+                                                            <div className="source-content">
+
+                                                                <strong>
+                                                                    {s.documentTitle}
+                                                                </strong>
+
+                                                                <div className="source-meta">
+                                                                    Chunk {s.chunkIndex}
+                                                                    {' · '}
+                                                                    similarity {s.similarityScore}
+                                                                </div>
+
+                                                                <p>
+                                                                    {s.snippet}
+                                                                </p>
+
+                                                            </div>
+
+                                                        </div>
+
+                                                    ))}
+
+                                                </div>
+
+                                            </details>
+
+                                        )}
+
+                                    </div>
+
+                                </div>
+
+                            </article>
+
+                        ))}
+
+                    </div>
+
+                </section>
+
             )}
-          </div>
-        ))}
-      </div>
-    </div>
-  )
+
+
+            {/* =====================================================
+          EMPTY STATE
+          ===================================================== */}
+
+            {history.length === 0 && (
+
+                <div className="ai-empty-state">
+
+                    <div className="ai-empty-icon">
+                        ✦
+                    </div>
+
+                    <h3>
+                        Your laboratory AI assistant
+                    </h3>
+
+                    <p>
+                        Ask a question above and your answer will be
+                        generated using the approved knowledge base.
+                    </p>
+
+                </div>
+
+            )}
+
+        </div>
+    )
 }
