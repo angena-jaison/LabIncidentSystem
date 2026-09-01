@@ -40,3 +40,4 @@ export const api = {
   patch: (path, body) => request(path, { method: 'PATCH', body }),
   del: (path) => request(path, { method: 'DELETE' }),
 };
+

@@ -2,28 +2,40 @@ using LabAPI.Data;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
+using System.Linq;
 
 namespace LabAPI.Tests;
 
-// Boots the real ASP.NET Core pipeline for integration tests, but replaces
-// the SQL Server database with an isolated in-memory one, so tests don't
-// need a real database server and never touch your dev data.
 public class CustomWebApplicationFactory : WebApplicationFactory<Program>
 {
+    // 1. Create a shared root so the DB isn't destroyed between HTTP requests
+    private readonly InMemoryDatabaseRoot _dbRoot = new();
+
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
-        builder.UseEnvironment("Testing");
-
         builder.ConfigureServices(services =>
         {
+            // 2. Find the real SQL Server DbContext registration and remove it
             var descriptor = services.SingleOrDefault(
-                d => d.ServiceType == typeof(DbContextOptions<AppDbContext>));
-            if (descriptor != null) services.Remove(descriptor);
+                d => d.ServiceType == typeof(DbContextOptions<AppDbContext>)); // NOTE: If your context is named something else (e.g., LabDbContext), change it here!
 
+            if (descriptor != null)
+            {
+                services.Remove(descriptor);
+            }
+
+            // 3. Add the In-Memory database using the shared root
             services.AddDbContext<AppDbContext>(options =>
-                options.UseInMemoryDatabase("IntegrationTestDb-" + Guid.NewGuid()));
+            {
+                options.UseInMemoryDatabase("IntegrationTestsDb", _dbRoot);
+            });
+
+            // 4. Ensure the database schema is created for the tests
+            using var scope = services.BuildServiceProvider().CreateScope();
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            db.Database.EnsureCreated();
         });
     }
 }
