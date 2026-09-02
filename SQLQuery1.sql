@@ -1,0 +1,3 @@
+﻿ALTER TABLE Documents
+ADD FileData VARBINARY(MAX) NULL,
+    ContentType NVARCHAR(200) NULL;

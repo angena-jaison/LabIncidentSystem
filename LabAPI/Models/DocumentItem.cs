@@ -1,8 +1,9 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace LabAPI.Models;
 
-// Metadata about an uploaded knowledge document (e.g. a safety procedure PDF/txt).
+// Metadata and original file data for an uploaded knowledge document.
 public class DocumentItem
 {
     public int Id { get; set; }
@@ -13,7 +14,21 @@ public class DocumentItem
     [Required, MaxLength(300)]
     public string FileName { get; set; } = string.Empty;
 
-    // We store the extracted plain text so we can chunk + embed it.
+    // The original uploaded file.
+    // This allows the frontend to display the actual PDF,
+    // preserving its original formatting, pages, images, tables, etc.
+    [Column(TypeName = "varbinary(max)")]
+    public byte[]? FileData { get; set; }
+
+    // MIME type of the original file.
+    // Example:
+    // application/pdf
+    // text/plain
+    public string? ContentType { get; set; }
+
+    // Extracted plain text.
+    // This is still required by the AI/RAG system for:
+    // text -> chunks -> embeddings.
     public string FullText { get; set; } = string.Empty;
 
     public int UploadedByUserId { get; set; }
@@ -21,15 +36,14 @@ public class DocumentItem
 
     public DateTime UploadedAtUtc { get; set; } = DateTime.UtcNow;
 
-    // --- Approval / governance (Administrator-only workflow) ---
-    // The AI assistant (RagService) only ever retrieves chunks belonging to
-    // an Approved document. Pending/Rejected documents are stored but
-    // invisible to the AI - this is the control that guarantees the
-    // assistant only answers from vetted material.
+    // --- Approval / governance ---
+    // The AI assistant only retrieves chunks belonging to
+    // Approved documents.
     public DocumentStatus Status { get; set; } = DocumentStatus.Pending;
 
     public int? ReviewedByUserId { get; set; }
     public User? ReviewedByUser { get; set; }
+
     public DateTime? ReviewedAtUtc { get; set; }
 
     public List<DocumentChunk> Chunks { get; set; } = new();

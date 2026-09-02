@@ -3,12 +3,21 @@ import { api } from '../api/client'
 import { useAuth } from '../context/AuthContext'
 import DocStatusBadge from '../components/DocStatusBadge'
 import '../styles/documents.css'
+
 export default function DocumentsPage() {
     const [docs, setDocs] = useState([])
     const [title, setTitle] = useState('')
     const [file, setFile] = useState(null)
     const [error, setError] = useState('')
     const [uploading, setUploading] = useState(false)
+
+    // ============================================================
+    // DOCUMENT PREVIEW
+    // ============================================================
+
+    const [viewingDocument, setViewingDocument] = useState(null)
+    const [loadingDocument, setLoadingDocument] = useState(false)
+
     const { user } = useAuth()
 
     const canUpload =
@@ -18,13 +27,26 @@ export default function DocumentsPage() {
     const canApprove =
         user?.role === 'Administrator'
 
+    const canDelete =
+        user?.role === 'Administrator'
+
+    // ============================================================
+    // LOAD DOCUMENTS
+    // ============================================================
+
     function reload() {
         api.get('/documents')
             .then(setDocs)
             .catch(err => setError(err.message))
     }
 
-    useEffect(reload, [])
+    useEffect(() => {
+        reload()
+    }, [])
+
+    // ============================================================
+    // UPLOAD
+    // ============================================================
 
     async function handleUpload(e) {
         e.preventDefault()
@@ -41,6 +63,7 @@ export default function DocumentsPage() {
             const formData = new FormData()
 
             formData.append('file', file)
+
             formData.append(
                 'title',
                 title || file.name
@@ -53,6 +76,7 @@ export default function DocumentsPage() {
 
             setTitle('')
             setFile(null)
+
             e.target.reset()
 
             reload()
@@ -62,6 +86,10 @@ export default function DocumentsPage() {
             setUploading(false)
         }
     }
+
+    // ============================================================
+    // APPROVE
+    // ============================================================
 
     async function approve(id) {
         setError('')
@@ -78,6 +106,10 @@ export default function DocumentsPage() {
         }
     }
 
+    // ============================================================
+    // REJECT
+    // ============================================================
+
     async function reject(id) {
         setError('')
 
@@ -93,6 +125,126 @@ export default function DocumentsPage() {
         }
     }
 
+    // ============================================================
+    // VIEW ORIGINAL DOCUMENT
+    // ============================================================
+    //
+    // IMPORTANT:
+    //
+    // We are NO LONGER calling:
+    //
+    // /documents/{id}/view
+    //
+    // because that returned extracted FullText.
+    //
+    // Instead we call:
+    //
+    // /documents/{id}/file
+    //
+    // which returns the ORIGINAL uploaded file.
+    //
+    // We create a temporary browser URL from the returned
+    // Blob and display it in an iframe.
+    //
+
+    async function viewDocument(document) {
+        setError('')
+        setLoadingDocument(true)
+
+        try {
+            const response = await fetch(
+                `http://localhost:5000/api/documents/${document.id}/file`,
+                {
+                    method: 'GET',
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem('labtrack_token')}`
+                    }
+                }
+            )
+
+            if (!response.ok) {
+                let message = `Unable to open document (${response.status})`
+
+                try {
+                    const data = await response.json()
+
+                    if (data?.Message) {
+                        message = data.Message
+                    }
+
+                    if (data?.message) {
+                        message = data.message
+                    }
+                } catch {
+                    // Response was not JSON.
+                }
+
+                throw new Error(message)
+            }
+
+            // Get the ORIGINAL file as a Blob.
+            const blob = await response.blob()
+
+            // Create a temporary browser URL.
+            const fileUrl = URL.createObjectURL(blob)
+
+            setViewingDocument({
+                ...document,
+                fileUrl
+            })
+        } catch (err) {
+            setError(err.message)
+        } finally {
+            setLoadingDocument(false)
+        }
+    }
+
+    // ============================================================
+    // CLOSE DOCUMENT PREVIEW
+    // ============================================================
+
+    function closeDocumentPreview() {
+        if (viewingDocument?.fileUrl) {
+            URL.revokeObjectURL(viewingDocument.fileUrl)
+        }
+
+        setViewingDocument(null)
+    }
+
+    // ============================================================
+    // DELETE DOCUMENT
+    // ============================================================
+
+    async function deleteDocument(id, documentTitle) {
+        const confirmed = window.confirm(
+            `Are you sure you want to delete "${documentTitle}"?\n\nThis will permanently remove the document and its indexed knowledge chunks.`
+        )
+
+        if (!confirmed) {
+            return
+        }
+
+        setError('')
+
+        try {
+            await api.del(`/documents/${id}`)
+
+            // If this document is currently being viewed,
+            // close the preview.
+            if (viewingDocument?.id === id) {
+                closeDocumentPreview()
+            }
+
+            reload()
+        } catch (err) {
+            setError(err.message)
+        }
+    }
+
+    // ============================================================
+    // STATISTICS
+    // ============================================================
+
     const pendingCount = docs.filter(
         d => d.status === 'Pending'
     ).length
@@ -101,16 +253,21 @@ export default function DocumentsPage() {
         d => d.status === 'Approved'
     ).length
 
+    // ============================================================
+    // PAGE
+    // ============================================================
+
     return (
         <div className="app-shell documents-page">
 
             {/* =====================================================
-          HEADER
-          ===================================================== */}
+                HEADER
+            ===================================================== */}
 
             <div className="documents-header">
 
                 <div>
+
                     <div className="eyebrow">
                         KNOWLEDGE MANAGEMENT
                     </div>
@@ -123,6 +280,7 @@ export default function DocumentsPage() {
                         Vetted laboratory safety procedures and reference
                         material used to ground the AI assistant.
                     </p>
+
                 </div>
 
                 <div className="documents-header-icon">
@@ -133,8 +291,8 @@ export default function DocumentsPage() {
 
 
             {/* =====================================================
-          INFORMATION BANNER
-          ===================================================== */}
+                INFORMATION BANNER
+            ===================================================== */}
 
             <div className="knowledge-banner">
 
@@ -160,8 +318,8 @@ export default function DocumentsPage() {
 
 
             {/* =====================================================
-          STATISTICS
-          ===================================================== */}
+                STATISTICS
+            ===================================================== */}
 
             <div className="document-stats">
 
@@ -210,20 +368,23 @@ export default function DocumentsPage() {
 
 
             {/* =====================================================
-          ERROR
-          ===================================================== */}
+                ERROR
+            ===================================================== */}
 
             {error && (
                 <div className="error-banner document-error">
+
                     <span>!</span>
+
                     {error}
+
                 </div>
             )}
 
 
             {/* =====================================================
-          UPLOAD
-          ===================================================== */}
+                UPLOAD
+            ===================================================== */}
 
             {canUpload && (
 
@@ -236,6 +397,7 @@ export default function DocumentsPage() {
                         </div>
 
                         <div>
+
                             <h2>
                                 Add knowledge document
                             </h2>
@@ -243,6 +405,7 @@ export default function DocumentsPage() {
                             <p>
                                 Upload a laboratory procedure or safety reference.
                             </p>
+
                         </div>
 
                     </div>
@@ -299,6 +462,7 @@ export default function DocumentsPage() {
                                 </span>
 
                                 <span className="file-drop-hint">
+
                                     {file
                                         ? `${(file.size / 1024).toFixed(1)} KB selected`
                                         : 'Click to browse files'}
@@ -317,11 +481,13 @@ export default function DocumentsPage() {
                         >
 
                             <span>
+
                                 {uploading
                                     ? 'Uploading & indexing…'
                                     : canApprove
                                         ? 'Upload & approve'
                                         : 'Submit for approval'}
+
                             </span>
 
                             {!uploading && (
@@ -340,9 +506,11 @@ export default function DocumentsPage() {
                         <span>ⓘ</span>
 
                         <span>
-                            Supported formats: <strong>.TXT</strong> and
-                            <strong> .PDF</strong>. Documents are indexed
-                            into the laboratory knowledge base.
+                            Supported formats:
+                            <strong>.TXT</strong> and
+                            <strong> .PDF</strong>.
+                            Documents are indexed into the laboratory
+                            knowledge base.
                         </span>
 
                     </div>
@@ -353,8 +521,8 @@ export default function DocumentsPage() {
 
 
             {/* =====================================================
-          DOCUMENT LIST
-          ===================================================== */}
+                DOCUMENT LIST
+            ===================================================== */}
 
             <section className="documents-section">
 
@@ -373,7 +541,10 @@ export default function DocumentsPage() {
                     </div>
 
                     <div className="document-count-pill">
-                        {docs.length} document{docs.length !== 1 ? 's' : ''}
+
+                        {docs.length} document
+                        {docs.length !== 1 ? 's' : ''}
+
                     </div>
 
                 </div>
@@ -409,12 +580,20 @@ export default function DocumentsPage() {
                                 className="document-card"
                             >
 
+                                {/* =================================================
+                                    DOCUMENT INFORMATION
+                                ================================================= */}
+
                                 <div className="document-card-main">
 
                                     <div className="document-file-icon">
-                                        {d.fileName?.toLowerCase().endsWith('.pdf')
+
+                                        {d.fileName
+                                            ?.toLowerCase()
+                                            .endsWith('.pdf')
                                             ? 'PDF'
                                             : 'TXT'}
+
                                     </div>
 
 
@@ -441,10 +620,12 @@ export default function DocumentsPage() {
                                         <div className="document-meta">
 
                                             <span>
+
                                                 <strong>
                                                     {d.chunkCount}
                                                 </strong>{' '}
                                                 indexed chunks
+
                                             </span>
 
                                             <span className="meta-separator">
@@ -452,10 +633,13 @@ export default function DocumentsPage() {
                                             </span>
 
                                             <span>
+
                                                 Uploaded by{' '}
+
                                                 <strong>
                                                     {d.uploadedByName}
                                                 </strong>
+
                                             </span>
 
                                         </div>
@@ -470,6 +654,7 @@ export default function DocumentsPage() {
                                                 </span>
 
                                                 Reviewed by{' '}
+
                                                 <strong>
                                                     {d.reviewedByName}
                                                 </strong>
@@ -489,33 +674,99 @@ export default function DocumentsPage() {
                                 </div>
 
 
-                                {/* ADMIN ACTIONS */}
+                                {/* =================================================
+                                    ACTIONS
+                                ================================================= */}
 
-                                {canApprove &&
-                                    d.status === 'Pending' && (
+                                <div className="document-actions">
 
-                                        <div className="document-actions">
+                                    {/* VIEW — ADMIN ONLY */}
 
-                                            <button
-                                                className="btn btn-primary document-action-approve"
-                                                onClick={() => approve(d.id)}
-                                            >
-                                                <span>✓</span>
-                                                Approve
-                                            </button>
+                                    {canDelete && (
 
+                                        <button
+                                            type="button"
+                                            className="btn document-action-view"
+                                            onClick={() =>
+                                                viewDocument(d)
+                                            }
+                                            disabled={loadingDocument}
+                                        >
 
-                                            <button
-                                                className="btn btn-danger document-action-reject"
-                                                onClick={() => reject(d.id)}
-                                            >
-                                                <span>×</span>
-                                                Reject
-                                            </button>
+                                            <span>👁</span>
 
-                                        </div>
+                                            View
+
+                                        </button>
 
                                     )}
+
+
+                                    {/* APPROVE / REJECT — ADMIN ONLY */}
+
+                                    {canApprove &&
+                                        d.status === 'Pending' && (
+
+                                            <>
+
+                                                <button
+                                                    type="button"
+                                                    className="btn btn-primary document-action-approve"
+                                                    onClick={() =>
+                                                        approve(d.id)
+                                                    }
+                                                >
+
+                                                    <span>✓</span>
+
+                                                    Approve
+
+                                                </button>
+
+
+                                                <button
+                                                    type="button"
+                                                    className="btn btn-danger document-action-reject"
+                                                    onClick={() =>
+                                                        reject(d.id)
+                                                    }
+                                                >
+
+                                                    <span>×</span>
+
+                                                    Reject
+
+                                                </button>
+
+                                            </>
+
+                                        )}
+
+
+                                    {/* DELETE — ADMIN ONLY */}
+
+                                    {canDelete && (
+
+                                        <button
+                                            type="button"
+                                            className="btn document-action-delete"
+                                            onClick={() =>
+                                                deleteDocument(
+                                                    d.id,
+                                                    d.title
+                                                )
+                                            }
+                                        >
+
+                                            <span>×</span>
+
+                                            Delete
+
+                                        </button>
+
+                                    )}
+
+                                </div>
 
                             </article>
 
@@ -529,8 +780,154 @@ export default function DocumentsPage() {
 
 
             {/* =====================================================
-          FOOTER INFORMATION
-          ===================================================== */}
+                ORIGINAL DOCUMENT PREVIEW MODAL
+            ===================================================== */}
+
+            {viewingDocument && (
+
+                <div
+                    className="document-preview-overlay"
+                    onClick={closeDocumentPreview}
+                >
+
+                    <div
+                        className="document-preview-modal"
+                        onClick={e =>
+                            e.stopPropagation()
+                        }
+                    >
+
+                        {/* =================================================
+                            PREVIEW HEADER
+                        ================================================= */}
+
+                        <div className="document-preview-header">
+
+                            <div>
+
+                                <div className="eyebrow">
+                                    DOCUMENT PREVIEW
+                                </div>
+
+                                <h2>
+                                    {viewingDocument.title}
+                                </h2>
+
+                                <div className="document-preview-file">
+                                    {viewingDocument.fileName}
+                                </div>
+
+                            </div>
+
+
+                            <button
+                                type="button"
+                                className="document-preview-close"
+                                onClick={closeDocumentPreview}
+                                aria-label="Close document preview"
+                            >
+                                ×
+                            </button>
+
+                        </div>
+
+
+                        {/* =================================================
+                            PREVIEW META
+                        ================================================= */}
+
+                        <div className="document-preview-meta">
+
+                            <DocStatusBadge
+                                status={viewingDocument.status}
+                            />
+
+                            <span>
+
+                                Uploaded by{' '}
+
+                                <strong>
+                                    {viewingDocument.uploadedByName}
+                                </strong>
+
+                            </span>
+
+                            <span>
+
+                                {new Date(
+                                    viewingDocument.uploadedAtUtc
+                                ).toLocaleString([], {
+                                    year: 'numeric',
+                                    month: 'short',
+                                    day: 'numeric',
+                                    hour: '2-digit',
+                                    minute: '2-digit'
+                                })}
+
+                            </span>
+
+                        </div>
+
+
+                        {/* =================================================
+                            ORIGINAL FILE VIEWER
+                        ================================================= */}
+
+                        <div className="document-preview-content">
+
+                            {viewingDocument.fileName
+                                ?.toLowerCase()
+                                .endsWith('.pdf') ? (
+
+                                <iframe
+                                    src={viewingDocument.fileUrl}
+                                    title={viewingDocument.title}
+                                    className="document-pdf-viewer"
+                                />
+
+                            ) : (
+
+                                <iframe
+                                    src={viewingDocument.fileUrl}
+                                    title={viewingDocument.title}
+                                    className="document-pdf-viewer"
+                                />
+
+                            )}
+
+                        </div>
+
+
+                        {/* =================================================
+                            FOOTER
+                        ================================================= */}
+
+                        <div className="document-preview-footer">
+
+                            <span>
+                                Original uploaded document
+                            </span>
+
+                            <button
+                                type="button"
+                                className="btn btn-secondary"
+                                onClick={closeDocumentPreview}
+                            >
+                                Close
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            )}
+
+
+            {/* =====================================================
+                FOOTER INFORMATION
+            ===================================================== */}
 
             <div className="knowledge-footer">
 
