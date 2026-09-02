@@ -9,7 +9,7 @@ namespace LabAPI.Services.Admin;
 // of the app).
 public interface IAdminService
 {
-    Task<List<UserSummaryResponse>> GetAllUsersAsync();
+    Task<List<UserSummaryResponse>> GetAllUsersAsync(AdminUserQueryParams query);
     Task<UserSummaryResponse> ChangeRoleAsync(int userId, UserRole newRole, int currentAdminUserId);
     Task<UserSummaryResponse> SetActiveAsync(int userId, bool isActive, int currentAdminUserId);
     Task<string> ResetPasswordAsync(int userId);

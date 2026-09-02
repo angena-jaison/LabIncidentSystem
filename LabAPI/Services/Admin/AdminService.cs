@@ -14,9 +14,27 @@ public class AdminService : IAdminService
         _db = db;
     }
 
-    public async Task<List<UserSummaryResponse>> GetAllUsersAsync()
+    public async Task<List<UserSummaryResponse>> GetAllUsersAsync(AdminUserQueryParams query)
     {
-        return await _db.Users
+        var usersQuery = _db.Users.AsQueryable();
+
+        // Search by name
+        if (!string.IsNullOrWhiteSpace(query.Search))
+        {
+            var search = query.Search.Trim().ToLower();
+
+            usersQuery = usersQuery.Where(u =>
+     u.FullName.StartsWith(search));
+        }
+
+        // Filter by account status
+        if (query.IsActive.HasValue)
+        {
+            usersQuery = usersQuery.Where(u =>
+                u.IsActive == query.IsActive.Value);
+        }
+
+        return await usersQuery
             .OrderBy(u => u.FullName)
             .Select(u => ToSummary(u))
             .ToListAsync();

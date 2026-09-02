@@ -3,7 +3,6 @@ using LabAPI.DTOs;
 using LabAPI.Services.Admin;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-
 namespace LabAPI.Controllers;
 
 // Every endpoint here is Administrator-only. This is deliberately the ONLY
@@ -27,9 +26,10 @@ public class AdminController : ControllerBase
 
     // GET /api/admin/users
     [HttpGet("users")]
-    public async Task<IActionResult> GetUsers()
+    public async Task<IActionResult> GetUsers(
+        [FromQuery] AdminUserQueryParams query)
     {
-        var users = await _adminService.GetAllUsersAsync();
+        var users = await _adminService.GetAllUsersAsync(query);
         return Ok(users);
     }
 

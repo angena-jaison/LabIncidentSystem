@@ -7,18 +7,43 @@ const ROLES = ['LabUser', 'Reviewer', 'Administrator']
 
 export default function AdminUsersPage() {
     const { user } = useAuth()
+
     const [users, setUsers] = useState([])
     const [error, setError] = useState('')
     const [tempPasswords, setTempPasswords] = useState({})
 
-    function reload() {
-        api.get('/admin/users')
+    // Search/filter state
+    const [searchInput, setSearchInput] = useState('')
+    const [search, setSearch] = useState('')
+    const [statusFilter, setStatusFilter] = useState('all')
+
+    function reload(searchValue = search, statusValue = statusFilter) {
+        setError('')
+
+        const params = new URLSearchParams()
+
+        if (searchValue.trim()) {
+            params.set('search', searchValue.trim())
+        }
+
+        if (statusValue === 'active') {
+            params.set('isActive', 'true')
+        }
+
+        if (statusValue === 'inactive') {
+            params.set('isActive', 'false')
+        }
+
+        const queryString = params.toString()
+
+        api.get(`/admin/users${queryString ? `?${queryString}` : ''}`)
             .then(setUsers)
             .catch(err => setError(err.message))
     }
 
+    // Load all users when page opens
     useEffect(() => {
-        reload()
+        reload('', 'all')
     }, [])
 
     if (user?.role !== 'Administrator') {
@@ -31,11 +56,40 @@ export default function AdminUsersPage() {
         )
     }
 
+    // SEARCH BUTTON
+    function handleSearch(e) {
+        e.preventDefault()
+
+        setSearch(searchInput)
+
+        reload(searchInput, statusFilter)
+    }
+
+    // CLEAR SEARCH
+    function handleClear() {
+        setSearchInput('')
+        setSearch('')
+
+        reload('', statusFilter)
+    }
+
+    // STATUS FILTER
+    function handleStatusChange(e) {
+        const newStatus = e.target.value
+
+        setStatusFilter(newStatus)
+
+        // Use the already submitted search value
+        reload(search, newStatus)
+    }
+
     async function changeRole(id, newRole) {
         setError('')
 
         try {
             await api.patch(`/admin/users/${id}/role`, { newRole })
+
+            // Refresh using current search/filter
             reload()
         } catch (err) {
             setError(err.message)
@@ -47,6 +101,8 @@ export default function AdminUsersPage() {
 
         try {
             await api.patch(`/admin/users/${id}/active`, { isActive })
+
+            // Refresh using current search/filter
             reload()
         } catch (err) {
             setError(err.message)
@@ -57,7 +113,9 @@ export default function AdminUsersPage() {
         setError('')
 
         try {
-            const result = await api.post(`/admin/users/${id}/reset-password`)
+            const result = await api.post(
+                `/admin/users/${id}/reset-password`
+            )
 
             setTempPasswords(prev => ({
                 ...prev,
@@ -75,6 +133,7 @@ export default function AdminUsersPage() {
             <div className="admin-header">
                 <div>
                     <h1>Manage accounts</h1>
+
                     <p>
                         Administrator-only: set roles, deactivate accounts,
                         and issue temporary passwords.
@@ -92,6 +151,69 @@ export default function AdminUsersPage() {
                 </div>
             )}
 
+            {/* SEARCH + FILTER */}
+            <form
+                className="admin-user-filters"
+                onSubmit={handleSearch}
+            >
+
+                {/* SEARCH BOX */}
+                <div className="admin-search-box">
+
+                    <input
+                        type="text"
+                        placeholder="Search users by name..."
+                        value={searchInput}
+                        onChange={e =>
+                            setSearchInput(e.target.value)
+                        }
+                    />
+
+                </div>
+
+                {/* SEARCH BUTTON */}
+                <button
+                    type="submit"
+                    className="admin-search-btn"
+                >
+                    Search
+                </button>
+
+                {/* CLEAR BUTTON */}
+                {(searchInput || search) && (
+                    <button
+                        type="button"
+                        className="admin-clear-btn"
+                        onClick={handleClear}
+                    >
+                        Clear
+                    </button>
+                )}
+
+                {/* STATUS FILTER */}
+                <div className="admin-status-filter">
+
+                    <select
+                        value={statusFilter}
+                        onChange={handleStatusChange}
+                    >
+                        <option value="all">
+                            All users
+                        </option>
+
+                        <option value="active">
+                            Activated
+                        </option>
+
+                        <option value="inactive">
+                            Deactivated
+                        </option>
+                    </select>
+
+                </div>
+
+            </form>
+
             {/* TABLE HEADER */}
             <div className="admin-table-header">
                 <div>User</div>
@@ -102,130 +224,161 @@ export default function AdminUsersPage() {
             {/* USERS */}
             <div className="admin-users">
 
-                {users.map(u => {
+                {users.length === 0 ? (
 
-                    const isSelf = u.email === user.email
+                    <div className="admin-empty">
+                        No users found.
+                    </div>
 
-                    return (
-                        <div
-                            key={u.id}
-                            className={`admin-user-row ${!u.isActive ? 'inactive' : ''}`}
-                        >
+                ) : (
 
-                            {/* USER INFO */}
-                            <div className="admin-user-info">
+                    users.map(u => {
 
-                                <div className="admin-avatar">
-                                    {u.fullName?.charAt(0).toUpperCase()}
+                        const isSelf = u.email === user.email
+
+                        return (
+                            <div
+                                key={u.id}
+                                className={`admin-user-row ${!u.isActive ? 'inactive' : ''}`}
+                            >
+
+                                {/* USER INFO */}
+                                <div className="admin-user-info">
+
+                                    <div className="admin-avatar">
+                                        {u.fullName?.charAt(0).toUpperCase()}
+                                    </div>
+
+                                    <div className="admin-user-details">
+
+                                        <div className="admin-user-name">
+
+                                            {u.fullName}
+
+                                            {isSelf && (
+                                                <span className="you-badge">
+                                                    You
+                                                </span>
+                                            )}
+
+                                            {!u.isActive && (
+                                                <span className="deactivated-badge">
+                                                    Deactivated
+                                                </span>
+                                            )}
+
+                                        </div>
+
+                                        <div className="admin-user-email">
+                                            {u.email}
+                                        </div>
+
+                                        {tempPasswords[u.id] && (
+                                            <div className="temporary-password">
+                                                Temporary password:
+                                                <strong>
+                                                    {tempPasswords[u.id]}
+                                                </strong>
+                                            </div>
+                                        )}
+
+                                    </div>
+
                                 </div>
 
-                                <div className="admin-user-details">
+                                {/* ROLE */}
+                                <div className="admin-role">
 
-                                    <div className="admin-user-name">
-                                        {u.fullName}
+                                    <label>Role</label>
 
-                                        {isSelf && (
-                                            <span className="you-badge">
-                                                You
-                                            </span>
-                                        )}
+                                    <select
+                                        value={u.role}
+                                        onChange={e =>
+                                            changeRole(
+                                                u.id,
+                                                e.target.value
+                                            )
+                                        }
+                                        disabled={isSelf}
+                                        title={
+                                            isSelf
+                                                ? "You can't change your own role"
+                                                : undefined
+                                        }
+                                    >
 
-                                        {!u.isActive && (
-                                            <span className="deactivated-badge">
-                                                Deactivated
-                                            </span>
-                                        )}
-                                    </div>
+                                        {ROLES.map(role => (
+                                            <option
+                                                key={role}
+                                                value={role}
+                                            >
+                                                {role}
+                                            </option>
+                                        ))}
 
-                                    <div className="admin-user-email">
-                                        {u.email}
-                                    </div>
+                                    </select>
 
-                                    {tempPasswords[u.id] && (
-                                        <div className="temporary-password">
-                                            Temporary password:
-                                            <strong>{tempPasswords[u.id]}</strong>
-                                        </div>
+                                </div>
+
+                                {/* ACTIONS */}
+                                <div className="admin-actions">
+
+                                    <button
+                                        className="admin-reset-btn"
+                                        onClick={() =>
+                                            resetPassword(u.id)
+                                        }
+                                    >
+                                        Reset password
+                                    </button>
+
+                                    {isSelf ? (
+
+                                        <button
+                                            className="admin-disabled-btn"
+                                            disabled
+                                            title="You can't deactivate your own account"
+                                        >
+                                            Deactivate
+                                        </button>
+
+                                    ) : u.isActive ? (
+
+                                        <button
+                                            className="admin-deactivate-btn"
+                                            onClick={() =>
+                                                toggleActive(
+                                                    u.id,
+                                                    false
+                                                )
+                                            }
+                                        >
+                                            Deactivate
+                                        </button>
+
+                                    ) : (
+
+                                        <button
+                                            className="admin-reactivate-btn"
+                                            onClick={() =>
+                                                toggleActive(
+                                                    u.id,
+                                                    true
+                                                )
+                                            }
+                                        >
+                                            Reactivate
+                                        </button>
+
                                     )}
 
                                 </div>
-                            </div>
-
-                            {/* ROLE */}
-                            <div className="admin-role">
-
-                                <label>Role</label>
-
-                                <select
-                                    value={u.role}
-                                    onChange={e =>
-                                        changeRole(u.id, e.target.value)
-                                    }
-                                    disabled={isSelf}
-                                    title={
-                                        isSelf
-                                            ? "You can't change your own role"
-                                            : undefined
-                                    }
-                                >
-                                    {ROLES.map(role => (
-                                        <option key={role} value={role}>
-                                            {role}
-                                        </option>
-                                    ))}
-                                </select>
 
                             </div>
+                        )
+                    })
 
-                            {/* ACTIONS */}
-                            <div className="admin-actions">
-
-                                <button
-                                    className="admin-reset-btn"
-                                    onClick={() => resetPassword(u.id)}
-                                >
-                                    Reset password
-                                </button>
-
-                                {isSelf ? (
-
-                                    <button
-                                        className="admin-disabled-btn"
-                                        disabled
-                                        title="You can't deactivate your own account"
-                                    >
-                                        Deactivate
-                                    </button>
-
-                                ) : u.isActive ? (
-
-                                    <button
-                                        className="admin-deactivate-btn"
-                                        onClick={() =>
-                                            toggleActive(u.id, false)
-                                        }
-                                    >
-                                        Deactivate
-                                    </button>
-
-                                ) : (
-
-                                    <button
-                                        className="admin-reactivate-btn"
-                                        onClick={() =>
-                                            toggleActive(u.id, true)
-                                        }
-                                    >
-                                        Reactivate
-                                    </button>
-
-                                )}
-
-                            </div>
-
-                        </div>
-                    )
-                })}
+                )}
 
             </div>
 
